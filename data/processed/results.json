@@ -1,0 +1,708 @@
+{
+ "n_tracts": 199,
+ "n_scored": 198,
+ "pop2020_total": 585708,
+ "pop_acs_total": 573243,
+ "indicator_missing": {
+  "lst_popw_c": 0,
+  "modis_myd_night_c": 0,
+  "pct_65plus": 0,
+  "pct_under5": 0,
+  "pl_CHD": 0,
+  "pl_COPD": 0,
+  "pl_CASTHMA": 0,
+  "pl_DIABETES": 0,
+  "pl_STROKE": 0,
+  "pl_MHLTH": 0,
+  "pct_disability": 1,
+  "pct_poverty": 1,
+  "pct_no_vehicle": 1,
+  "pct_65_alone": 1,
+  "pct_limited_english": 1,
+  "pct_uninsured": 1,
+  "pct_no_internet": 1,
+  "pl_SHUTUTILITY": 0,
+  "pct_pre1940": 1,
+  "dist_cool_km": 0,
+  "low_tree": 0
+ },
+ "component_spearman": {
+  "exposure~sensitivity": 0.071,
+  "exposure~low_capacity": 0.393,
+  "sensitivity~low_capacity": 0.757
+ },
+ "pca_components_kaiser": 4,
+ "pca_var_explained": 0.739,
+ "alt_index_spearman": {
+  "hvi_pca": 0.934,
+  "hvi_geo": 0.98,
+  "hvi_flat": 0.907
+ },
+ "svi_vs_hvi_spearman": 0.683,
+ "mc_draws": 1000,
+ "median_rank_interval_width": 40.0,
+ "n_robust_top20": 27,
+ "n_top20": 40,
+ "rank_stability_spearman": {
+  "data_error": 0.991,
+  "weights": 0.98,
+  "both": 0.97
+ },
+ "lst_range": [
+  35.7,
+  47.5
+ ],
+ "lst_iqr": [
+  40.5,
+  44.6
+ ],
+ "night_range": [
+  18.9,
+  23.0
+ ],
+ "lst_year_corr_min": 0.767,
+ "lst_year_corr_median": 0.88,
+ "day_night_spearman": 0.663,
+ "lst_vs_popw_spearman": 0.841,
+ "landsat_scenes_total": 39,
+ "landsat_scenes_used": 31,
+ "landsat_dates_used": [
+  "20190727",
+  "20190812",
+  "20200713",
+  "20200729",
+  "20200814",
+  "20200830",
+  "20210614",
+  "20210630",
+  "20210716",
+  "20220601",
+  "20220617",
+  "20230706",
+  "20230823",
+  "20240622",
+  "20240708",
+  "20240825",
+  "20250625",
+  "20250711",
+  "20250727",
+  "20250812",
+  "20220609",
+  "20220711",
+  "20220812",
+  "20230730",
+  "20230831",
+  "20240614",
+  "20240716",
+  "20240801",
+  "20250601",
+  "20250703",
+  "20250804"
+ ],
+ "ols_lst_tree_built": {
+  "r2": 0.788,
+  "b_tree": -0.089,
+  "ci_tree": [
+   -0.112,
+   -0.066
+  ],
+  "b_built": 0.017,
+  "ci_built": [
+   -0.003,
+   0.037
+  ]
+ },
+ "spearman_lst_tree": -0.875,
+ "spearman_lst_ndvi": -0.856,
+ "eq_spearman": {
+  "lst_popw_c~pct_poverty": [
+   0.319,
+   4.80811742421108e-06
+  ],
+  "lst_popw_c~pct_black_nh": [
+   0.027,
+   0.7093147364076622
+  ],
+  "lst_popw_c~median_income": [
+   -0.18,
+   0.01167341210728718
+  ],
+  "lst_popw_c~pct_tree": [
+   -0.875,
+   8.652132200098852e-64
+  ],
+  "modis_myd_night_c~pct_poverty": [
+   0.255,
+   0.0002995499482943385
+  ],
+  "modis_myd_night_c~pct_black_nh": [
+   0.025,
+   0.7269527190664541
+  ],
+  "modis_myd_night_c~median_income": [
+   -0.213,
+   0.0028504361756899366
+  ],
+  "modis_myd_night_c~pct_tree": [
+   -0.666,
+   9.267120373564177e-27
+  ],
+  "hvi~pct_poverty": [
+   0.742,
+   1.1422793749961346e-35
+  ],
+  "hvi~pct_black_nh": [
+   0.525,
+   2.0547644164743127e-15
+  ],
+  "hvi~median_income": [
+   -0.724,
+   6.186481720345461e-33
+  ],
+  "hvi~pct_tree": [
+   -0.499,
+   7.330826624295688e-14
+  ]
+ },
+ "lst_poverty_slope_per10": [
+  0.73,
+  [
+   0.44,
+   1.02
+  ]
+ ],
+ "exp_day_black_nh": 41.96,
+ "exp_night_black_nh": 20.99,
+ "exp_day_white_nh": 41.91,
+ "exp_night_white_nh": 20.98,
+ "exp_day_hispanic": 42.11,
+ "exp_night_hispanic": 21.17,
+ "exp_day_poverty": 42.49,
+ "exp_night_poverty": 21.11,
+ "exp_day_age65": 41.68,
+ "exp_night_age65": 20.91,
+ "exp_day_all": 41.97,
+ "exp_night_all": 21.0,
+ "holc_n_by_grade": {
+  "A": 9,
+  "B": 38,
+  "C": 44,
+  "D": 46
+ },
+ "holc_lst_by_grade": {
+  "A": 40.67,
+  "B": 40.16,
+  "C": 43.8,
+  "D": 44.66
+ },
+ "holc_night_by_grade": {
+  "A": 20.807,
+  "B": 20.54,
+  "C": 21.565,
+  "D": 21.862
+ },
+ "holc_tree_by_grade": {
+  "A": 44.1,
+  "B": 47.3,
+  "C": 18.0,
+  "D": 7.9
+ },
+ "holc_hvi_by_grade": {
+  "A": 0.374,
+  "B": 0.413,
+  "C": 0.608,
+  "D": 0.575
+ },
+ "holc_kruskal_lst": [
+  69.57,
+  5.2852236512196764e-15
+ ],
+ "holc_score_slope": [
+  2.07,
+  [
+   1.72,
+   2.41
+  ],
+  3.414132685173584e-31
+ ],
+ "holc_D_minus_A_or_B": 4.4,
+ "moran_hvi": [
+  0.71,
+  0.001
+ ],
+ "moran_lst_popw_c": [
+  0.747,
+  0.001
+ ],
+ "moran_modis_myd_night_c": [
+  0.884,
+  0.001
+ ],
+ "moran_score_sensitivity": [
+  0.547,
+  0.001
+ ],
+ "moran_score_low_capacity": [
+  0.556,
+  0.001
+ ],
+ "lisa_counts": {
+  "Not significant": 104,
+  "Low-Low": 48,
+  "High-High": 45,
+  "High-Low": 1
+ },
+ "lisa_hh_pop": 90735,
+ "veryhigh_n": 40,
+ "veryhigh_pop": 78314,
+ "veryhigh_mean_dist_cool": 1.08,
+ "all_mean_dist_cool": 1.39,
+ "n_cooling_centers": 29,
+ "zcta_n": 20,
+ "zcta_list": [
+  "21201",
+  "21202",
+  "21205",
+  "21206",
+  "21210",
+  "21211",
+  "21212",
+  "21213",
+  "21214",
+  "21215",
+  "21216",
+  "21217",
+  "21218",
+  "21223",
+  "21224",
+  "21225",
+  "21229",
+  "21230",
+  "21231",
+  "21239"
+ ],
+ "val_spearman": {
+  "hvi": [
+   0.689,
+   0.0008
+  ],
+  "lst_popw_c": [
+   0.786,
+   0.0
+  ],
+  "modis_myd_night_c": [
+   0.664,
+   0.0014
+  ],
+  "score_exposure": [
+   0.716,
+   0.0004
+  ],
+  "score_sensitivity": [
+   0.145,
+   0.5429
+  ],
+  "score_low_capacity": [
+   0.607,
+   0.0045
+  ],
+  "svi_themes": [
+   0.271,
+   0.2475
+  ],
+  "OVERALL_RANK": [
+   0.593,
+   0.0059
+  ]
+ },
+ "val_hvi_boot_ci": [
+  0.347,
+  0.887
+ ],
+ "excess_model_r2": 0.558,
+ "excess_vs": {
+  "score_sensitivity": [
+   0.189,
+   0.4237
+  ],
+  "score_low_capacity": [
+   0.283,
+   0.2272
+  ],
+  "svi_themes": [
+   0.247,
+   0.2946
+  ]
+ },
+ "excess_full_r2": 0.777,
+ "excess_full_adj_r2": 0.736,
+ "excess_full_coef": {
+  "Intercept": [
+   5.34,
+   [
+    -21.16,
+    31.84
+   ],
+   0.675
+  ],
+  "score_exposure": [
+   -21.33,
+   [
+    -57.19,
+    14.53
+   ],
+   0.2254
+  ],
+  "score_sensitivity": [
+   -131.1,
+   [
+    -210.06,
+    -52.15
+   ],
+   0.0028
+  ],
+  "score_low_capacity": [
+   284.0,
+   [
+    128.92,
+    439.08
+   ],
+   0.0013
+  ]
+ },
+ "excess_exposure_only_adj_r2": 0.533,
+ "excess_nested_F": [
+  7.9,
+  0.0041
+ ],
+ "loo_mae_full": 6.36,
+ "loo_mae_exposure": 8.19,
+ "station_summers": {
+  "2019_BWI": {
+   "n_valid": 92,
+   "days90": 45,
+   "nights75": 7,
+   "mean_tmin": 67.3
+  },
+  "2019_DMH": {
+   "n_valid": 92,
+   "days90": 47,
+   "nights75": 28,
+   "mean_tmin": 71.4
+  },
+  "2020_BWI": {
+   "n_valid": 92,
+   "days90": 45,
+   "nights75": 10,
+   "mean_tmin": 69.1
+  },
+  "2021_BWI": {
+   "n_valid": 92,
+   "days90": 47,
+   "nights75": 9,
+   "mean_tmin": 68.4
+  },
+  "2022_BWI": {
+   "n_valid": 92,
+   "days90": 41,
+   "nights75": 6,
+   "mean_tmin": 67.5
+  },
+  "2023_BWI": {
+   "n_valid": 92,
+   "days90": 29,
+   "nights75": 5,
+   "mean_tmin": 66.3
+  },
+  "2023_DMH": {
+   "n_valid": 88,
+   "days90": 40,
+   "nights75": 28,
+   "mean_tmin": 70.9
+  },
+  "2024_BWI": {
+   "n_valid": 92,
+   "days90": 43,
+   "nights75": 14,
+   "mean_tmin": 68.3
+  },
+  "2024_DMH": {
+   "n_valid": 92,
+   "days90": 49,
+   "nights75": 34,
+   "mean_tmin": 72.9
+  },
+  "2025_BWI": {
+   "n_valid": 92,
+   "days90": 28,
+   "nights75": 11,
+   "mean_tmin": 67.2
+  },
+  "2025_DMH": {
+   "n_valid": 91,
+   "days90": 58,
+   "nights75": 42,
+   "mean_tmin": 73.1
+  }
+ },
+ "paired_days_dmh_bwi": 380,
+ "dmh_minus_bwi_tmin_f": 4.78,
+ "dmh_minus_bwi_tmax_f": 1.59,
+ "top15": [
+  {
+   "GEOID": "24510080500",
+   "NAME": "Census Tract 805",
+   "csa": "Clifton-Berea",
+   "hvi": 0.852,
+   "hvi_rank": 1,
+   "rank_lo90": 1.0,
+   "rank_hi90": 2.0,
+   "p_top20": 1.0,
+   "lst_popw_c": 46.826,
+   "modis_myd_night_c": 22.486,
+   "pct_65plus": 14.452,
+   "pct_poverty": 51.912,
+   "pl_CHD": 12.2,
+   "pct_tree": 7.951,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510080301",
+   "NAME": "Census Tract 803.01",
+   "csa": "Clifton-Berea",
+   "hvi": 0.803,
+   "hvi_rank": 2,
+   "rank_lo90": 2.0,
+   "rank_hi90": 17.0,
+   "p_top20": 0.999,
+   "lst_popw_c": 46.427,
+   "modis_myd_night_c": 22.965,
+   "pct_65plus": 13.879,
+   "pct_poverty": 24.974,
+   "pl_CHD": 9.1,
+   "pct_tree": 7.718,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510090800",
+   "NAME": "Census Tract 908",
+   "csa": "Midway/Coldstream",
+   "hvi": 0.795,
+   "hvi_rank": 3,
+   "rank_lo90": 2.0,
+   "rank_hi90": 16.0,
+   "p_top20": 0.999,
+   "lst_popw_c": 46.384,
+   "modis_myd_night_c": 22.107,
+   "pct_65plus": 20.748,
+   "pct_poverty": 26.324,
+   "pl_CHD": 11.1,
+   "pct_tree": 10.834,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510070200",
+   "NAME": "Census Tract 702",
+   "csa": "Madison/East End",
+   "hvi": 0.781,
+   "hvi_rank": 4,
+   "rank_lo90": 2.0,
+   "rank_hi90": 24.0,
+   "p_top20": 0.996,
+   "lst_popw_c": 47.542,
+   "modis_myd_night_c": 22.754,
+   "pct_65plus": 9.346,
+   "pct_poverty": 33.531,
+   "pl_CHD": 8.1,
+   "pct_tree": 2.699,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510100200",
+   "NAME": "Census Tract 1002",
+   "csa": "Oldtown/Middle East",
+   "hvi": 0.779,
+   "hvi_rank": 5,
+   "rank_lo90": 3.0,
+   "rank_hi90": 18.05,
+   "p_top20": 1.0,
+   "lst_popw_c": 45.469,
+   "modis_myd_night_c": 22.351,
+   "pct_65plus": 12.983,
+   "pct_poverty": 47.782,
+   "pl_CHD": 10.3,
+   "pct_tree": 10.151,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510080600",
+   "NAME": "Census Tract 806",
+   "csa": "Oliver/Johnston Square",
+   "hvi": 0.767,
+   "hvi_rank": 6,
+   "rank_lo90": 3.0,
+   "rank_hi90": 22.05,
+   "p_top20": 0.999,
+   "lst_popw_c": 45.832,
+   "modis_myd_night_c": 22.422,
+   "pct_65plus": 18.182,
+   "pct_poverty": 22.909,
+   "pl_CHD": 10.0,
+   "pct_tree": 5.468,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510080200",
+   "NAME": "Census Tract 802",
+   "csa": "Clifton-Berea",
+   "hvi": 0.766,
+   "hvi_rank": 7,
+   "rank_lo90": 2.0,
+   "rank_hi90": 21.05,
+   "p_top20": 1.0,
+   "lst_popw_c": 43.965,
+   "modis_myd_night_c": 22.459,
+   "pct_65plus": 10.206,
+   "pct_poverty": 46.044,
+   "pl_CHD": 11.6,
+   "pct_tree": 8.079,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510280500",
+   "NAME": "Census Tract 2805",
+   "csa": "Oldtown/Middle East",
+   "hvi": 0.765,
+   "hvi_rank": 8,
+   "rank_lo90": 2.0,
+   "rank_hi90": 19.0,
+   "p_top20": 0.999,
+   "lst_popw_c": 45.354,
+   "modis_myd_night_c": 21.875,
+   "pct_65plus": 10.554,
+   "pct_poverty": 66.523,
+   "pl_CHD": 13.1,
+   "pct_tree": 2.449,
+   "lisa": "Not significant"
+  },
+  {
+   "GEOID": "24510090700",
+   "NAME": "Census Tract 907",
+   "csa": "Midway/Coldstream",
+   "hvi": 0.764,
+   "hvi_rank": 9,
+   "rank_lo90": 3.0,
+   "rank_hi90": 28.0,
+   "p_top20": 0.995,
+   "lst_popw_c": 44.246,
+   "modis_myd_night_c": 21.723,
+   "pct_65plus": 19.026,
+   "pct_poverty": 35.654,
+   "pl_CHD": 10.9,
+   "pct_tree": 15.468,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510080302",
+   "NAME": "Census Tract 803.02",
+   "csa": "Clifton-Berea",
+   "hvi": 0.758,
+   "hvi_rank": 10,
+   "rank_lo90": 4.0,
+   "rank_hi90": 28.0,
+   "p_top20": 0.991,
+   "lst_popw_c": 45.03,
+   "modis_myd_night_c": 22.919,
+   "pct_65plus": 27.101,
+   "pct_poverty": 31.101,
+   "pl_CHD": 7.9,
+   "pct_tree": 4.268,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510100100",
+   "NAME": "Census Tract 1001",
+   "csa": "Oliver/Johnston Square",
+   "hvi": 0.754,
+   "hvi_rank": 11,
+   "rank_lo90": 4.0,
+   "rank_hi90": 23.0,
+   "p_top20": 0.998,
+   "lst_popw_c": 44.782,
+   "modis_myd_night_c": 22.54,
+   "pct_65plus": 20.798,
+   "pct_poverty": 34.237,
+   "pl_CHD": 9.0,
+   "pct_tree": 9.259,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510160300",
+   "NAME": "Census Tract 1603",
+   "csa": "Sandtown-Winchester/Harlem Park",
+   "hvi": 0.748,
+   "hvi_rank": 12,
+   "rank_lo90": 3.0,
+   "rank_hi90": 36.0,
+   "p_top20": 0.983,
+   "lst_popw_c": 43.293,
+   "modis_myd_night_c": 21.907,
+   "pct_65plus": 30.467,
+   "pct_poverty": 41.391,
+   "pl_CHD": 11.8,
+   "pct_tree": 22.227,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510200200",
+   "NAME": "Census Tract 2002",
+   "csa": "Southwest Baltimore",
+   "hvi": 0.746,
+   "hvi_rank": 13,
+   "rank_lo90": 3.0,
+   "rank_hi90": 25.0,
+   "p_top20": 0.996,
+   "lst_popw_c": 44.813,
+   "modis_myd_night_c": 21.614,
+   "pct_65plus": 27.222,
+   "pct_poverty": 38.904,
+   "pl_CHD": 13.2,
+   "pct_tree": 15.503,
+   "lisa": "High-High"
+  },
+  {
+   "GEOID": "24510170200",
+   "NAME": "Census Tract 1702",
+   "csa": "Upton/Druid Heights",
+   "hvi": 0.744,
+   "hvi_rank": 14,
+   "rank_lo90": 4.0,
+   "rank_hi90": 26.0,
+   "p_top20": 0.996,
+   "lst_popw_c": 43.834,
+   "modis_myd_night_c": 21.979,
+   "pct_65plus": 10.378,
+   "pct_poverty": 60.756,
+   "pl_CHD": 10.9,
+   "pct_tree": 5.911,
+   "lisa": "Not significant"
+  },
+  {
+   "GEOID": "24510160500",
+   "NAME": "Census Tract 1605",
+   "csa": "Greater Rosemont",
+   "hvi": 0.733,
+   "hvi_rank": 15,
+   "rank_lo90": 6.0,
+   "rank_hi90": 27.0,
+   "p_top20": 0.996,
+   "lst_popw_c": 45.042,
+   "modis_myd_night_c": 21.383,
+   "pct_65plus": 19.273,
+   "pct_poverty": 31.747,
+   "pl_CHD": 10.3,
+   "pct_tree": 22.09,
+   "lisa": "High-High"
+  }
+ ]
+}

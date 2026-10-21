@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Where Heat Meets Vulnerability: A Validated, Uncertainty-Aware Heat Vulnerability Index for Baltimore City's Census Tracts"
+authors:
+  - name: "Sahil"
+    affiliation: "Johns Hopkins University"
+date-released: 2026-10-21
+url: "https://github.com/sahiljangra12/baltimore-heat-atlas"
+license: MIT

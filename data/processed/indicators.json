@@ -1,0 +1,29 @@
+{
+ "exposure": {
+  "lst_popw_c": "Daytime land surface temperature where people live (Landsat, pop-weighted, \u00b0C)",
+  "modis_myd_night_c": "Night-time land surface temperature, ~01:30 (MODIS Aqua, \u00b0C)"
+ },
+ "sensitivity": {
+  "pct_65plus": "Residents aged 65+ (%)",
+  "pct_under5": "Children under 5 (%)",
+  "pl_CHD": "Coronary heart disease, adults (%)",
+  "pl_COPD": "COPD, adults (%)",
+  "pl_CASTHMA": "Current asthma, adults (%)",
+  "pl_DIABETES": "Diabetes, adults (%)",
+  "pl_STROKE": "Stroke, adults (%)",
+  "pl_MHLTH": "Frequent mental distress, adults (%)",
+  "pct_disability": "Any disability (%)"
+ },
+ "low_capacity": {
+  "pct_poverty": "Below poverty line (%)",
+  "pct_no_vehicle": "Households with no vehicle (%)",
+  "pct_65_alone": "Households: one person aged 65+ living alone (%)",
+  "pct_limited_english": "Limited-English households (%)",
+  "pct_uninsured": "No health insurance (%)",
+  "pct_no_internet": "Households with no internet (%)",
+  "pl_SHUTUTILITY": "Threat of utility shut-off in past year, adults (%)",
+  "pct_pre1940": "Housing built before 1940 (%)",
+  "dist_cool_km": "Distance to nearest cooling centre (km, pop-weighted)",
+  "low_tree": "Absence of tree cover (100 - % tree, ESA WorldCover)"
+ }
+}

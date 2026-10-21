@@ -1,0 +1,14 @@
+data/raw/*
+!data/raw/README.md
+*.tif
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.fls
+paper/*.fdb_latexmk
+paper/paper_build.*

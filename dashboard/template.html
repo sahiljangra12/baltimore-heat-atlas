@@ -1,0 +1,403 @@
+<title>Baltimore Heat Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Tract-level heat vulnerability for Baltimore City: satellite heat, health and social data, validated against heat-related EMS activations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+/* Layout: one working screen — live strip, map + tract card, then findings and charts; stacks to one column on phones */
+:root{
+  --bg:#eef0f2; --panel:#ffffff; --ink:#15171c; --ink2:#4a4f5a; --ink3:#7a808c; --rule:#d9dce1;
+  --heat:#d2481b; --heat-deep:#7a230a; --night:#5b4bc4; --cool:#2a6fc9; --leaf:#2f7d2a; --nodata:#d6d8dc;
+  --alert:#b3121f; --alert-bg:#fde8e8;
+  --f-display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111317; --panel:#1a1d23; --ink:#eceef2; --ink2:#b4b9c3; --ink3:#8a909c; --rule:#2c3038;
+  --heat:#f06a36; --heat-deep:#ffb08a; --night:#9a8cf0; --cool:#6aa5f2; --leaf:#6cc062; --nodata:#2e323a;
+  --alert:#ff6b6b; --alert-bg:#3a1a1c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111317; --panel:#1a1d23; --ink:#eceef2; --ink2:#b4b9c3; --ink3:#8a909c; --rule:#2c3038;
+  --heat:#f06a36; --heat-deep:#ffb08a; --night:#9a8cf0; --cool:#6aa5f2; --leaf:#6cc062; --nodata:#2e323a;
+  --alert:#ff6b6b; --alert-bg:#3a1a1c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,5vw,52px);font-weight:800;letter-spacing:-0.02em;line-height:1.02}
+h2{font-size:24px;font-weight:700;letter-spacing:-0.01em}
+h3{font-size:16px;font-weight:700}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.lede{color:var(--ink2);max-width:68ch;margin:10px 0 0}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+header{display:grid;gap:14px;grid-template-columns:1fr auto;align-items:end;padding-bottom:18px;border-bottom:1px solid var(--rule)}
+header .by{font-size:13px;color:var(--ink3);text-align:right}
+@media (max-width:760px){header{grid-template-columns:1fr}header .by{text-align:left}}
+
+/* live strip */
+.live{margin-top:16px;background:var(--panel);border-radius:var(--r);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;border:1px solid var(--rule)}
+.live .dot{width:9px;height:9px;border-radius:50%;background:var(--ink3);display:inline-block;margin-right:7px;vertical-align:1px}
+.live.on .dot{background:#2fa84f;box-shadow:0 0 0 4px color-mix(in srgb,#2fa84f 25%,transparent)}
+.live .fc{display:flex;gap:18px;flex-wrap:wrap}
+.live .fc div{min-width:0}
+.live .fc b{font-family:var(--f-mono);font-weight:500;font-size:18px;display:block}
+.live .fc span{font-size:12px;color:var(--ink3)}
+.alertpill{background:var(--alert-bg);color:var(--alert);border-radius:999px;padding:3px 10px;font-weight:600;font-size:13px}
+
+/* main grid */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;margin-top:16px}
+@media (max-width:980px){.main{grid-template-columns:1fr}}
+.card{background:var(--panel);border-radius:var(--r);border:1px solid var(--rule);padding:16px;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{font:inherit;font-size:13px;border:1px solid var(--rule);background:transparent;color:var(--ink2);border-radius:999px;padding:5px 11px;cursor:pointer}
+.chip:hover{border-color:var(--ink3);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.chip:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--heat);outline-offset:2px}
+.maptools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:6px}
+.maptools label{font-size:13px;color:var(--ink2);display:flex;gap:6px;align-items:center}
+select,input[type=search]{font:inherit;font-size:13px;background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:5px 8px;max-width:100%}
+#map{width:100%;aspect-ratio:1/1.02;max-height:720px;display:block}
+#map path.t{stroke:var(--panel);stroke-width:.5;cursor:pointer;transition:opacity .15s}
+#map path.t:hover{stroke:var(--ink);stroke-width:1.4}
+#map path.sel{stroke:var(--ink);stroke-width:2.2}
+#map .cc{fill:#fff;stroke:#15171c;stroke-width:1.2}
+.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-top:6px}
+.legend .bar{height:10px;width:180px;max-width:50vw;border-radius:2px}
+.legend .sw{display:inline-flex;align-items:center;gap:5px}
+.legend .sw i{width:12px;height:12px;border-radius:2px;display:inline-block}
+.layerdesc{font-size:13px;color:var(--ink2);margin:4px 0 0}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--panel);padding:6px 9px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .1s;z-index:20;max-width:240px}
+
+/* tract card */
+.tract .rank{font-family:var(--f-display);font-size:44px;font-weight:800;line-height:1}
+.tract .rank small{font-size:16px;color:var(--ink3);font-weight:500}
+.meter{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:4px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13.5px;margin-top:10px}
+.kv dt{color:var(--ink2)} .kv dd{margin:0;font-family:var(--f-mono);text-align:right}
+.comp{display:grid;grid-template-columns:110px 1fr 40px;gap:6px 10px;align-items:center;font-size:13px;margin-top:12px}
+.pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600}
+.muted{color:var(--ink3);font-size:12.5px}
+
+/* findings */
+.section{margin-top:40px}
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:14px}
+.finding .big{font-family:var(--f-display);font-weight:800;font-size:38px;line-height:1.05;color:var(--heat)}
+.finding p{margin:8px 0 0;color:var(--ink2);font-size:14px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:14px}
+.charts svg{width:100%;height:auto;display:block}
+.axis text{fill:var(--ink3);font-family:var(--f-mono);font-size:10.5px}
+.axis line,.axis path{stroke:var(--rule)}
+.gridl line{stroke:var(--rule)}
+.tablewrap{overflow-x:auto;margin-top:14px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:720px}
+th{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule)}
+td{padding:7px 10px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+td.n{text-align:right;font-family:var(--f-mono)}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--bg)}
+.method{columns:2 320px;column-gap:32px;color:var(--ink2);font-size:14px;margin-top:12px}
+.method p{margin:0 0 12px;break-inside:avoid}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink3)}
+footer a,.method a{color:var(--cool)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow">Baltimore City · 198 census tracts · summers 2019–2025</div>
+    <h1>Baltimore Heat Atlas</h1>
+    <p class="lede">Where summer heat, health and hardship overlap, neighbourhood by neighbourhood. Built from satellite temperature, CDC health estimates and Census data, and checked against heat-related EMS activations.</p>
+  </div>
+  <div class="by">Research by <b>Sahil</b><br>MSE Data Science, Johns Hopkins University<br>Data as of October 2026</div>
+</header>
+
+<div class="live" id="live" aria-live="polite">
+  <div><span class="dot"></span><b>Baltimore today</b> <span class="muted" id="liveSrc">National Weather Service forecast</span></div>
+  <div class="fc" id="fc"><span class="muted">Loading live forecast…</span></div>
+  <div id="alerts"></div>
+</div>
+
+<div class="main">
+  <div class="card">
+    <div class="maptools">
+      <div class="chips" id="chips" role="group" aria-label="Map layer"></div>
+    </div>
+    <div class="maptools">
+      <label for="find">Find a neighbourhood <input type="search" id="find" list="csalist" placeholder="e.g. Clifton-Berea"></label>
+      <datalist id="csalist"></datalist>
+      <label><input type="checkbox" id="showcool" checked> Cooling centres (2026)</label>
+    </div>
+    <p class="layerdesc" id="layerdesc"></p>
+    <svg id="map" role="img" aria-label="Map of Baltimore City census tracts"></svg>
+    <div class="legend" id="legend"></div>
+  </div>
+  <aside class="card tract" id="tract" aria-live="polite"></aside>
+</div>
+
+<section class="section">
+  <div class="eyebrow">What the data show</div>
+  <h2>Four findings</h2>
+  <div class="findings" id="findings"></div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Evidence</div>
+  <h2>Does the index track real harm?</h2>
+  <div class="charts">
+    <div class="card"><h3>Heat vulnerability vs heat-related EMS calls</h3><p class="muted" id="valnote"></p><svg id="chVal" viewBox="0 0 420 300"></svg></div>
+    <div class="card"><h3>1937 redlining grade and today's surface heat</h3><p class="muted">Tracts mostly covered by the HOLC map, mean daytime surface temperature (bars) and tree cover (labels).</p><svg id="chHolc" viewBox="0 0 420 300"></svg></div>
+    <div class="card"><h3>Hot nights downtown vs the airport</h3><p class="muted" id="nightnote"></p><svg id="chNight" viewBox="0 0 420 300"></svg></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Priority list</div>
+  <h2>The 20 most heat-vulnerable tracts</h2>
+  <p class="lede">Ranked by the Heat Vulnerability Index. “Top-20% probability” is the share of 1,000 simulations, varying survey error, health-model error, year-to-year temperature and index weights, in which the tract stayed in the city's most vulnerable fifth. Select a row to see it on the map.</p>
+  <div class="tablewrap card"><table id="toptable"><thead><tr>
+    <th>Rank</th><th>Tract</th><th>Neighbourhood (CSA)</th><th>HVI</th><th>90% rank range</th><th>Top-20% prob.</th><th>Day °C</th><th>Night °C</th><th>Poverty %</th><th>Tree %</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section class="section">
+  <div class="eyebrow">Method</div>
+  <h2>How the index is built</h2>
+  <div class="method">
+    <p><b>Exposure.</b> Daytime land surface temperature from 31 cloud-screened Landsat 8/9 scenes (June–August, 2019–2025, 30 m), averaged where people live using 2020 census-block population; plus night-time surface temperature from MODIS Aqua (about 1:30 a.m.).</p>
+    <p><b>Sensitivity.</b> Share aged 65+ and under 5, any disability (ACS 2020–2024), and adult heart disease, COPD, asthma, diabetes, stroke and frequent mental distress (CDC PLACES 2025).</p>
+    <p><b>Low adaptive capacity.</b> Poverty, no vehicle, older adults living alone, limited English, no insurance, no internet, threat of utility shut-off, pre-1940 housing, distance to the nearest 2026 cooling centre, and lack of tree cover.</p>
+    <p><b>Index.</b> Each of 21 indicators is converted to a percentile within Baltimore; the three components are averaged with equal weight. A principal-components version and a geometric mean rank tracts almost identically.</p>
+    <p><b>Uncertainty.</b> 1,000 Monte Carlo draws propagate Census margins of error, PLACES confidence intervals, year-to-year temperature variation and random component weights.</p>
+    <p><b>Validation.</b> Aggregated to 20 ZIP code areas, the index is compared with the CDC Heat &amp; Health Index percentile of heat-related EMS activations reported to NEMSIS, 2020–2022, which was not used to build it.</p>
+  </div>
+</section>
+
+<footer>
+  <p><b>Sources:</b> USGS Landsat Collection 2 and NASA MODIS (via Microsoft Planetary Computer); ESA WorldCover 2021; CDC PLACES 2025; U.S. Census Bureau ACS 2020–2024 and TIGER 2020; CDC/ATSDR SVI 2022 and Heat &amp; Health Index 2024; Mapping Inequality (University of Richmond); Baltimore City Health Department cooling centres 2026; BNIA Community Statistical Areas; NOAA RCC-ACIS station data; live forecast from api.weather.gov.</p>
+  <p>Satellite surface temperature measures roofs and pavement, not the air. Health values are model-based estimates. This atlas describes neighbourhoods, not individuals. In a heat emergency call 911; for Baltimore cooling centre information call 311.</p>
+  <p>© 2026 Sahil · Johns Hopkins University. Full paper: “Where Heat Meets Vulnerability” (October 2026).</p>
+</footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const DATA = /*__DATA__*/;
+const F = DATA.tracts.features, R = DATA.R;
+const scored = F.filter(f => f.properties.hvi != null);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (v, d=1) => v == null ? "–" : Number(v).toFixed(d);
+const HEAT = ["#fff1e8","#fbc4a6","#f28a5b","#d65a24","#9a3a12","#5c1f07"];
+const NIGHTR = ["#f3effc","#cfc5f3","#9c8ae6","#6250d6","#3d2f99","#211a5c"];
+const BLUER = ["#eaf2fd","#b7d3f6","#6da7ec","#2a78d6","#184f95","#0d366b"];
+const GREENR = ["#f1f8ec","#c8e6b5","#8ccb6f","#4a9d34","#256d18","#123d0b"];
+const HOLC = {A:"#76a865",B:"#7cb5bd",C:"#e6d94a",D:"#d9838d"};
+const LISA = {"High-High":"#b83c0f","Low-Low":"#2a78d6","High-Low":"#f2a37c","Low-High":"#9ec5f4","Not significant":"#c9ccd2"};
+const LAYERS = [
+  {k:"hvi", label:"Heat vulnerability", ramp:HEAT, unit:"index 0–1", d:2, desc:"Overall Heat Vulnerability Index: equal-weight mean of exposure, sensitivity and low adaptive capacity (within-city percentiles)."},
+  {k:"p20", label:"Certainty", ramp:HEAT, unit:"probability", d:2, dom:[0,1], desc:"Probability of ranking in the city's most vulnerable 20% across 1,000 simulations of data error and index weights."},
+  {k:"lst", label:"Day heat", ramp:HEAT, unit:"°C surface", d:1, desc:"Daytime land surface temperature where people live (Landsat, summers 2019–2025, population-weighted)."},
+  {k:"night", label:"Night heat", ramp:NIGHTR, unit:"°C surface", d:1, desc:"Night-time land surface temperature, about 1:30 a.m. (MODIS Aqua, summers 2019–2025). Bodies recover from heat at night; hot nights are the most dangerous."},
+  {k:"sS", label:"Sensitivity", ramp:BLUER, unit:"score 0–1", d:2, dom:[0,1], desc:"Age, disability and chronic disease that make heat more dangerous (ACS 2020–2024, CDC PLACES 2025)."},
+  {k:"sC", label:"Low capacity", ramp:BLUER, unit:"score 0–1", d:2, dom:[0,1], desc:"Limited means to cope: poverty, no car, living alone at 65+, utility shut-off threat, old housing, distance to cooling, no trees."},
+  {k:"tree", label:"Tree cover", ramp:GREENR, unit:"% of land", d:0, desc:"Share of tract land covered by trees (ESA WorldCover 2021, 10 m). Tree cover is the strongest single correlate of surface heat."},
+  {k:"holc", label:"1937 redlining", cat:HOLC, desc:"Dominant 1937 HOLC grade where at least half of the tract was graded (A best, D 'hazardous' / redlined). Source: Mapping Inequality."},
+  {k:"lisa", label:"Clusters", cat:LISA, desc:"Statistically significant clusters of vulnerability (Local Moran's I, p < 0.05). High-High = vulnerable tracts surrounded by vulnerable tracts."}
+];
+let layer = LAYERS[0], selected = null;
+try { const s = localStorage.getItem("bha-layer"); if (s) layer = LAYERS.find(l => l.k === s) || layer; } catch(e) {}
+
+// ---------- map ----------
+const svg = d3.select("#map"), W = 640, H = 650;
+svg.attr("viewBox", `0 0 ${W} ${H}`);
+const proj = d3.geoMercator().fitExtent([[8,8],[W-8,H-8]], DATA.tracts);
+const path = d3.geoPath(proj);
+const g = svg.append("g");
+const paths = g.selectAll("path").data(F).join("path").attr("class","t").attr("d", path)
+  .on("mousemove", (ev,f) => tip(ev, f)).on("mouseleave", () => tipEl.style.opacity = 0)
+  .on("click", (ev,f) => select(f));
+const ccg = svg.append("g");
+ccg.selectAll("path").data(DATA.cool).join("path").attr("class","cc")
+  .attr("d", d3.symbol(d3.symbolTriangle, 46)).attr("transform", d => `translate(${proj([d.x,d.y])})`)
+  .append("title").text(d => `${d.n} — ${d.a}. ${d.h || ""}`);
+d3.select("#showcool").on("change", function(){ ccg.attr("display", this.checked ? null : "none"); });
+
+function colorFor(l) {
+  if (l.cat) return f => { const v = f.properties[l.k]; return v && l.cat[v] ? l.cat[v] : css("--nodata"); };
+  const vals = scored.map(f => f.properties[l.k]).filter(v => v != null);
+  const dom = l.dom || [d3.quantile(vals.slice().sort(d3.ascending), .02), d3.quantile(vals.slice().sort(d3.ascending), .98)];
+  const sc = d3.scaleSequential(d3.interpolateRgbBasis(l.ramp)).domain(dom).clamp(true);
+  l._dom = dom;
+  return f => { const v = f.properties[l.k]; return v == null || f.properties.hvi == null ? css("--nodata") : sc(v); };
+}
+function draw() {
+  const c = colorFor(layer);
+  paths.attr("fill", c);
+  d3.select("#layerdesc").text(layer.desc);
+  const lg = d3.select("#legend").html("");
+  if (layer.cat) {
+    Object.entries(layer.cat).forEach(([k,v]) => lg.append("span").attr("class","sw").html(`<i style="background:${v}"></i>${layer.k==="holc"?"Grade ":""}${k}`));
+    lg.append("span").attr("class","sw").html(`<i style="background:${css("--nodata")}"></i>${layer.k==="holc"?"Not graded":"No data"}`);
+  } else {
+    lg.append("span").attr("class","num").text(fmt(layer._dom[0], layer.d));
+    lg.append("span").attr("class","bar").style("background", `linear-gradient(90deg, ${layer.ramp.join(",")})`);
+    lg.append("span").attr("class","num").text(fmt(layer._dom[1], layer.d) + " " + layer.unit);
+  }
+  d3.selectAll(".chip").attr("aria-pressed", d => d.k === layer.k);
+  try { localStorage.setItem("bha-layer", layer.k); } catch(e) {}
+}
+d3.select("#chips").selectAll("button").data(LAYERS).join("button").attr("class","chip").attr("type","button")
+  .text(d => d.label).on("click", (e,d) => { layer = d; draw(); });
+
+const tipEl = document.getElementById("tip");
+function tip(ev, f) {
+  const p = f.properties;
+  const v = layer.cat ? (p[layer.k] || (layer.k==="holc"?"Not graded":"–")) : `${fmt(p[layer.k], layer.d)} ${layer.unit}`;
+  tipEl.innerHTML = `<b>Tract ${p.name}</b>${p.csa ? " · " + p.csa : ""}<br>${layer.label}: ${p.hvi==null && !layer.cat ? "too few residents" : v}`;
+  tipEl.style.left = Math.min(ev.clientX + 14, window.innerWidth - 250) + "px";
+  tipEl.style.top = (ev.clientY + 14) + "px"; tipEl.style.opacity = 1;
+}
+
+// ---------- tract card ----------
+const N = scored.length;
+function bar(v, col) { return `<div class="meter"><i style="width:${Math.max(2, (v||0)*100)}%;background:${col}"></i></div>`; }
+function select(f) {
+  selected = f; paths.classed("sel", d => d === f);
+  const p = f.properties, el = document.getElementById("tract");
+  if (p.hvi == null) { el.innerHTML = `<div class="eyebrow">Tract ${p.name}</div><h3>${p.csa||""}</h3><p class="muted">Fewer than 100 residents (mostly port and industrial land), so it is not scored.</p>`; return; }
+  const clsCol = {"Very high":"var(--heat-deep)","High":"var(--heat)","Moderate":"#d99a3b","Low":"var(--cool)","Very low":"var(--cool)"}[p.cls];
+  el.innerHTML = `
+    <div class="eyebrow">Census tract ${p.name} · ${p.id}</div>
+    <h3 style="font-size:20px;margin-top:2px">${p.csa || ""}</h3>
+    <div style="display:flex;align-items:end;gap:12px;margin-top:12px">
+      <div class="rank">#${p.rank}<small> of ${N}</small></div>
+      <span class="pill" style="background:color-mix(in srgb, ${clsCol} 18%, transparent);color:${clsCol}">${p.cls} vulnerability</span>
+    </div>
+    <p class="muted" style="margin:6px 0 0">90% of simulations place it between #${Math.round(p.rlo)} and #${Math.ceil(p.rhi)}; in the top 20% in ${Math.round(p.p20*100)}% of them.</p>
+    <div class="comp">
+      <span>Exposure</span>${bar(p.sE,"var(--heat)")}<span class="num">${fmt(p.sE,2)}</span>
+      <span>Sensitivity</span>${bar(p.sS,"var(--cool)")}<span class="num">${fmt(p.sS,2)}</span>
+      <span>Low capacity</span>${bar(p.sC,"var(--cool)")}<span class="num">${fmt(p.sC,2)}</span>
+    </div>
+    <dl class="kv">
+      <dt>Day surface temp.</dt><dd>${fmt(p.lst)} °C</dd>
+      <dt>Night surface temp.</dt><dd>${fmt(p.night)} °C</dd>
+      <dt>Tree cover</dt><dd>${fmt(p.tree,0)}%</dd>
+      <dt>Below poverty</dt><dd>${fmt(p.pov,0)}%</dd>
+      <dt>Aged 65+</dt><dd>${fmt(p.age65,0)}%</dd>
+      <dt>Heart disease (adults)</dt><dd>${fmt(p.chd)}%</dd>
+      <dt>Households without a car</dt><dd>${fmt(p.noveh,0)}%</dd>
+      <dt>Utility shut-off threat</dt><dd>${fmt(p.shut,0)}%</dd>
+      <dt>Nearest cooling centre</dt><dd>${fmt(p.cool,1)} km</dd>
+      <dt>1937 HOLC grade</dt><dd>${p.holc || "–"}</dd>
+      <dt>Residents (ACS)</dt><dd>${p.pop ? Math.round(p.pop).toLocaleString() : "–"}</dd>
+    </dl>`;
+}
+
+// search by CSA
+const csas = [...new Set(scored.map(f => f.properties.csa).filter(Boolean))].sort();
+d3.select("#csalist").selectAll("option").data(csas).join("option").attr("value", d => d);
+d3.select("#find").on("change", function(){
+  const q = this.value.trim().toLowerCase(); if (!q) return;
+  const hit = scored.filter(f => (f.properties.csa||"").toLowerCase().includes(q) || f.properties.name === q || f.properties.id === q)
+                    .sort((a,b) => a.properties.rank - b.properties.rank)[0];
+  if (hit) select(hit);
+});
+
+// ---------- findings ----------
+const vs = R.val_spearman;
+const nights = R.station_summers;
+const findings = [
+  {big:`${R.lst_range[0].toFixed(1)}–${R.lst_range[1].toFixed(1)} °C`, t:`Range of average summer surface temperature where people live, across ${R.n_scored} tracts. Tree cover explains most of it (ρ = ${R.spearman_lst_tree.toFixed(2)}): each 10 points of canopy goes with ${(-10*R.ols_lst_tree_built.b_tree).toFixed(1)} °C cooler ground.`},
+  {big:`+${R.holc_D_minus_A_or_B.toFixed(1)} °C`, t:`How much hotter tracts redlined (grade D) in 1937 are today than grade A/B tracts. D areas average ${R.holc_tree_by_grade.D.toFixed(0)}% tree cover vs ${R.holc_tree_by_grade.B.toFixed(0)}% in B areas.`},
+  {big:`${R.veryhigh_pop.toLocaleString()}`, t:`Residents of the ${R.veryhigh_n} most vulnerable tracts, concentrated in two clusters in East and West Baltimore (Moran's I = ${R.moran_hvi[0].toFixed(2)}). ${R.n_robust_top20} tracts stay in the top fifth in at least 90% of simulations.`},
+  {big:`ρ = ${vs.hvi[0].toFixed(2)}`, t:`Correlation between the index and heat-related EMS activations across ${R.zcta_n} ZIP areas (95% CI ${R.val_hvi_boot_ci[0].toFixed(2)}–${R.val_hvi_boot_ci[1].toFixed(2)}). The CDC Social Vulnerability Index shows ρ = ${vs.svi_themes[0].toFixed(2)}.`}
+];
+d3.select("#findings").selectAll("div").data(findings).join("div").attr("class","card finding")
+  .html(d => `<div class="big">${d.big}</div><p>${d.t}</p>`);
+
+// ---------- charts ----------
+function axes(s, x, y, w, h, m, xl, yl) {
+  s.append("g").attr("class","axis").attr("transform",`translate(0,${h-m.b})`).call(d3.axisBottom(x).ticks(5).tickSizeOuter(0));
+  s.append("g").attr("class","axis gridl").attr("transform",`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w-m.l-m.r)).tickSizeOuter(0))
+    .call(g => g.select(".domain").remove());
+  if (xl) s.append("text").attr("x",(m.l+w-m.r)/2).attr("y",h-4).attr("text-anchor","middle").attr("fill",css("--ink2")).attr("font-size",11).text(xl);
+  if (yl) s.append("text").attr("transform",`translate(12,${(m.t+h-m.b)/2}) rotate(-90)`).attr("text-anchor","middle").attr("fill",css("--ink2")).attr("font-size",11).text(yl);
+}
+function chVal() {
+  const s = d3.select("#chVal").html(""), w=420,h=300,m={l:46,r:12,t:10,b:42};
+  const x = d3.scaleLinear().domain(d3.extent(DATA.val, d=>d.hvi)).nice().range([m.l,w-m.r]);
+  const y = d3.scaleLinear().domain([40,100]).range([h-m.b,m.t]);
+  axes(s,x,y,w,h,m,"Heat Vulnerability Index (ZIP area, population-weighted)","EMS heat calls, national percentile");
+  const mx = d3.mean(DATA.val,d=>d.hvi), my = d3.mean(DATA.val,d=>d.ems);
+  const b = d3.sum(DATA.val,d=>(d.hvi-mx)*(d.ems-my))/d3.sum(DATA.val,d=>(d.hvi-mx)**2), a = my-b*mx;
+  const xs = x.domain(); s.append("line").attr("x1",x(xs[0])).attr("x2",x(xs[1])).attr("y1",y(a+b*xs[0])).attr("y2",y(a+b*xs[1])).attr("stroke",css("--ink2")).attr("stroke-width",1.5);
+  s.selectAll("circle").data(DATA.val).join("circle").attr("cx",d=>x(d.hvi)).attr("cy",d=>y(d.ems)).attr("r",6)
+    .attr("fill",css("--heat")).attr("stroke",css("--panel")).attr("stroke-width",1.5)
+    .append("title").text(d=>`ZIP ${d.z}: HVI ${d.hvi.toFixed(2)}, EMS percentile ${d.ems}`);
+  d3.select("#valnote").text(`Each dot is a ZIP code area (${R.zcta_n}). Spearman ρ = ${vs.hvi[0].toFixed(2)}; exposure alone ρ = ${vs.score_exposure[0].toFixed(2)}; low capacity ρ = ${vs.score_low_capacity[0].toFixed(2)}. EMS data: NEMSIS 2020–2022 via CDC HHI.`);
+}
+function chHolc() {
+  const s = d3.select("#chHolc").html(""), w=420,h=300,m={l:46,r:12,t:16,b:40};
+  const gr = ["A","B","C","D"];
+  const x = d3.scaleBand().domain(gr).range([m.l,w-m.r]).padding(.35);
+  const lo = Math.floor(d3.min(gr, k=>R.holc_lst_by_grade[k]) - 2);
+  const y = d3.scaleLinear().domain([lo, Math.ceil(d3.max(gr,k=>R.holc_lst_by_grade[k])+1)]).range([h-m.b,m.t]);
+  axes(s,x,y,w,h,m,"1937 HOLC grade","Day surface temperature, °C");
+  s.selectAll("rect").data(gr).join("rect").attr("x",k=>x(k)).attr("width",x.bandwidth()).attr("y",k=>y(R.holc_lst_by_grade[k]))
+    .attr("height",k=>y(lo)-y(R.holc_lst_by_grade[k])).attr("rx",3).attr("fill",k=>HOLC[k]).attr("stroke",css("--ink3")).attr("stroke-width",.6)
+    .append("title").text(k=>`Grade ${k}: ${R.holc_lst_by_grade[k].toFixed(1)} °C, ${R.holc_n_by_grade[k]} tracts`);
+  s.selectAll("text.v").data(gr).join("text").attr("class","v").attr("x",k=>x(k)+x.bandwidth()/2).attr("y",k=>y(R.holc_lst_by_grade[k])-6)
+    .attr("text-anchor","middle").attr("font-size",11).attr("font-family","IBM Plex Mono, monospace").attr("fill",css("--ink"))
+    .text(k=>`${R.holc_lst_by_grade[k].toFixed(1)} °C`);
+  s.selectAll("text.tr").data(gr).join("text").attr("class","tr").attr("x",k=>x(k)+x.bandwidth()/2).attr("y",k=>y(R.holc_lst_by_grade[k])+16)
+    .attr("text-anchor","middle").attr("font-size",10.5).attr("fill","#15171c").text(k=>`${R.holc_tree_by_grade[k].toFixed(0)}% trees`);
+}
+function chNight() {
+  const s = d3.select("#chNight").html(""), w=420,h=300,m={l:40,r:12,t:24,b:30};
+  const yrs = [2019,2020,2021,2022,2023,2024,2025], st = ["BWI","DMH"], col = {BWI:css("--ink3"), DMH:css("--night")};
+  const x0 = d3.scaleBand().domain(yrs).range([m.l,w-m.r]).padding(.2), x1 = d3.scaleBand().domain(st).range([0,x0.bandwidth()]).padding(.08);
+  const vals = yrs.flatMap(y => st.map(k => ({y,k,v:(nights[`${y}_${k}`]||{}).nights75})));
+  const y = d3.scaleLinear().domain([0, d3.max(vals,d=>d.v||0)+4]).nice().range([h-m.b,m.t]);
+  axes(s,x0,y,w,h,m,null,"Nights ≥ 75 °F (Jun–Aug)");
+  s.selectAll("rect").data(vals.filter(d=>d.v!=null)).join("rect").attr("x",d=>x0(d.y)+x1(d.k)).attr("width",x1.bandwidth())
+    .attr("y",d=>y(d.v)).attr("height",d=>y(0)-y(d.v)).attr("rx",2).attr("fill",d=>col[d.k])
+    .append("title").text(d=>`${d.y} ${d.k==="DMH"?"Inner Harbor":"BWI Airport"}: ${d.v} nights`);
+  [["BWI Airport","BWI"],["Inner Harbor","DMH"]].forEach(([l,k],i)=>{ s.append("rect").attr("x",m.l+8+i*110).attr("y",6).attr("width",10).attr("height",10).attr("fill",col[k]);
+    s.append("text").attr("x",m.l+22+i*110).attr("y",15).attr("font-size",11).attr("fill",css("--ink2")).text(l); });
+  d3.select("#nightnote").text(`On ${R.paired_days_dmh_bwi} paired summer days the Inner Harbor's overnight low averaged ${R.dmh_minus_bwi_tmin_f.toFixed(1)} °F above BWI. Missing bars: station had incomplete records that summer.`);
+}
+
+// ---------- top table ----------
+const topList = scored.slice().sort((a,b)=>a.properties.rank-b.properties.rank).slice(0,20);
+d3.select("#toptable tbody").selectAll("tr").data(topList).join("tr")
+  .html(f => { const p=f.properties; return `<td class="n">${p.rank}</td><td>${p.name}</td><td>${p.csa||""}</td><td class="n">${fmt(p.hvi,3)}</td><td class="n">${Math.round(p.rlo)}–${Math.ceil(p.rhi)}</td><td class="n">${Math.round(p.p20*100)}%</td><td class="n">${fmt(p.lst)}</td><td class="n">${fmt(p.night)}</td><td class="n">${fmt(p.pov,0)}</td><td class="n">${fmt(p.tree,0)}</td>`; })
+  .on("click", (e,f) => { select(f); document.getElementById("map").scrollIntoView({behavior:"smooth", block:"center"}); });
+
+// ---------- live NWS forecast ----------
+async function live() {
+  const box = document.getElementById("live"), fc = document.getElementById("fc"), al = document.getElementById("alerts");
+  try {
+    const pt = await (await fetch("https://api.weather.gov/points/39.2904,-76.6122", {headers:{Accept:"application/geo+json"}})).json();
+    const f = await (await fetch(pt.properties.forecast)).json();
+    const per = f.properties.periods.slice(0,4);
+    fc.innerHTML = per.map(p => `<div><b>${p.temperature}°${p.temperatureUnit}</b><span>${p.name} · ${p.shortForecast}</span></div>`).join("");
+    box.classList.add("on");
+    document.getElementById("liveSrc").textContent = "National Weather Service · updated " + new Date(f.properties.updateTime || Date.now()).toLocaleString([], {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"});
+    const a = await (await fetch("https://api.weather.gov/alerts/active?point=39.2904,-76.6122")).json();
+    const heat = (a.features||[]).filter(x => /heat/i.test(x.properties.event));
+    al.innerHTML = heat.length ? heat.map(x => `<span class="alertpill">${x.properties.event}</span>`).join(" ") + ` <span class="muted">Check the darkest tracts on the map first.</span>` : `<span class="muted">No heat alerts in effect.</span>`;
+  } catch (e) {
+    fc.innerHTML = `<span class="muted">Live forecast appears when this page is opened from the published website (it reads api.weather.gov).</span>`;
+  }
+}
+
+draw(); chVal(); chHolc(); chNight();
+select(topList[0]); live();
+const mq = matchMedia("(prefers-color-scheme: dark)");
+const redraw = () => { draw(); chVal(); chHolc(); chNight(); if (selected) select(selected); };
+mq.addEventListener?.("change", redraw);
+new MutationObserver(redraw).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+</script>
