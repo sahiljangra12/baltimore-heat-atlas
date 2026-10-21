@@ -12,3 +12,4 @@ paper/*.blg
 paper/*.fls
 paper/*.fdb_latexmk
 paper/paper_build.*
+dashboard/baltimore_heat_atlas.html
