@@ -21,7 +21,7 @@
 ---
 
 <p align="center">
-  <img src="outputs/figures/fig3_hvi_uncertainty.png" width="88%" alt="Heat Vulnerability Index for Baltimore City census tracts, and the probability that each tract ranks in the top 20%">
+  <a href="https://sahiljangra12.github.io/baltimore-heat-atlas/"><img src="assets/hero.jpg" width="92%" alt="Baltimore Heat Atlas: census tracts glowing by summer surface temperature"></a>
 </p>
 
 Extreme heat kills more Americans than any other weather hazard, and within a city its burden is uneven. This project ranks **198 Baltimore City census tracts** by heat vulnerability. It combines:
@@ -57,8 +57,10 @@ The dashboard has nine map layers: vulnerability, certainty, day and night heat,
 
 | | |
 |---|---|
-| ![Day and night surface heat](outputs/figures/fig1_lst_day_night.png) | ![Components](outputs/figures/fig2_components.png) |
-| **Day and night surface heat** | **Exposure, sensitivity, low capacity** |
+| ![Heat Vulnerability Index](outputs/figures/fig3_hvi_uncertainty.png) | ![Day and night surface heat](outputs/figures/fig1_lst_day_night.png) |
+| **Heat Vulnerability Index and its certainty** | **Day and night surface heat** |
+| ![Components](outputs/figures/fig2_components.png) | ![Drivers](outputs/figures/fig6_drivers.png) |
+| **Exposure, sensitivity, low capacity** | **Trees and surface heat; day vs night** |
 | ![Clusters](outputs/figures/fig4_lisa.png) | ![Redlining](outputs/figures/fig5_holc.png) |
 | **Vulnerability clusters (LISA)** | **1937 HOLC grade vs. heat and trees** |
 | ![Validation](outputs/figures/fig7_validation.png) | ![Hot nights](outputs/figures/fig8_station_climate.png) |
