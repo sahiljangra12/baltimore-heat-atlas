@@ -7,188 +7,292 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Tract-level heat vulnerability for Baltimore City: satellite heat, health and social data, validated against heat-related EMS activations.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
-/* Layout: one working screen — live strip, map + tract card, then findings and charts; stacks to one column on phones */
+/* Layout: a thermal-camera hero (always dark) with the city glowing by surface heat, then a light survey-sheet body:
+   explorer (map + tract report card), evidence charts, priority list, method. Stacks to one column on phones. */
 :root{
-  --bg:#eef0f2; --panel:#ffffff; --ink:#15171c; --ink2:#4a4f5a; --ink3:#7a808c; --rule:#d9dce1;
-  --heat:#d2481b; --heat-deep:#7a230a; --night:#5b4bc4; --cool:#2a6fc9; --leaf:#2f7d2a; --nodata:#d6d8dc;
+  --bg:#eceef0; --paper:#f7f8f9; --panel:#ffffff; --ink:#121419; --ink2:#454b57; --ink3:#767d8a; --rule:#d8dbe0;
+  --heat:#d2481b; --heat-deep:#7a230a; --ember:#ff7a2f; --night:#5b4bc4; --cool:#2a6fc9; --leaf:#2f7d2a; --nodata:#d3d6db;
   --alert:#b3121f; --alert-bg:#fde8e8;
-  --f-display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
-  --f-body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
-  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-  --r:10px;
+  --hero:#0b0c10; --hero-ink:#f3f1ee; --hero-ink2:#a9a6a2; --hero-rule:#2a2b31;
+  --thermal: linear-gradient(90deg,#1a0b2e 0%,#4a1260 18%,#8e1f5e 34%,#d2481b 55%,#f39a2b 76%,#ffe08a 100%);
+  --f-display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:14px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#111317; --panel:#1a1d23; --ink:#eceef2; --ink2:#b4b9c3; --ink3:#8a909c; --rule:#2c3038;
-  --heat:#f06a36; --heat-deep:#ffb08a; --night:#9a8cf0; --cool:#6aa5f2; --leaf:#6cc062; --nodata:#2e323a;
+  --bg:#0f1115; --paper:#14171c; --panel:#191c22; --ink:#eceef2; --ink2:#b4b9c3; --ink3:#868c98; --rule:#2a2e36;
+  --heat:#f06a36; --heat-deep:#ffb08a; --ember:#ff8a45; --night:#9a8cf0; --cool:#6aa5f2; --leaf:#6cc062; --nodata:#2c3038;
   --alert:#ff6b6b; --alert-bg:#3a1a1c; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#111317; --panel:#1a1d23; --ink:#eceef2; --ink2:#b4b9c3; --ink3:#8a909c; --rule:#2c3038;
-  --heat:#f06a36; --heat-deep:#ffb08a; --night:#9a8cf0; --cool:#6aa5f2; --leaf:#6cc062; --nodata:#2e323a;
+  --bg:#0f1115; --paper:#14171c; --panel:#191c22; --ink:#eceef2; --ink2:#b4b9c3; --ink3:#868c98; --rule:#2a2e36;
+  --heat:#f06a36; --heat-deep:#ffb08a; --ember:#ff8a45; --night:#9a8cf0; --cool:#6aa5f2; --leaf:#6cc062; --nodata:#2c3038;
   --alert:#ff6b6b; --alert-bg:#3a1a1c; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
-.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.55;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
-h1{font-size:clamp(30px,5vw,52px);font-weight:800;letter-spacing:-0.02em;line-height:1.02}
-h2{font-size:24px;font-weight:700;letter-spacing:-0.01em}
-h3{font-size:16px;font-weight:700}
-.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
-.lede{color:var(--ink2);max-width:68ch;margin:10px 0 0}
+h2{font-size:clamp(28px,3.6vw,40px);font-weight:800;letter-spacing:-0.025em;line-height:1.05}
+h3{font-size:17px;font-weight:600;letter-spacing:-0.01em}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:22px;height:3px;border-radius:2px;background:var(--thermal)}
+.lede{color:var(--ink2);max-width:64ch;margin:12px 0 0;font-size:16px}
 .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-header{display:grid;gap:14px;grid-template-columns:1fr auto;align-items:end;padding-bottom:18px;border-bottom:1px solid var(--rule)}
-header .by{font-size:13px;color:var(--ink3);text-align:right}
-@media (max-width:760px){header{grid-template-columns:1fr}header .by{text-align:left}}
+a{color:inherit}
 
-/* live strip */
-.live{margin-top:16px;background:var(--panel);border-radius:var(--r);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;border:1px solid var(--rule)}
-.live .dot{width:9px;height:9px;border-radius:50%;background:var(--ink3);display:inline-block;margin-right:7px;vertical-align:1px}
-.live.on .dot{background:#2fa84f;box-shadow:0 0 0 4px color-mix(in srgb,#2fa84f 25%,transparent)}
-.live .fc{display:flex;gap:18px;flex-wrap:wrap}
-.live .fc div{min-width:0}
-.live .fc b{font-family:var(--f-mono);font-weight:500;font-size:18px;display:block}
-.live .fc span{font-size:12px;color:var(--ink3)}
-.alertpill{background:var(--alert-bg);color:var(--alert);border-radius:999px;padding:3px 10px;font-weight:600;font-size:13px}
+/* ---------- hero ---------- */
+.hero{background:var(--hero);color:var(--hero-ink);position:relative;overflow:hidden;isolation:isolate}
+.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:4px;background:var(--thermal)}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:24px;align-items:center;padding-block:36px 40px}
+.hero .topbar{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-family:var(--f-mono);font-size:12px;color:var(--hero-ink2);letter-spacing:.06em;text-transform:uppercase}
+.hero .topbar a{text-decoration:none;color:var(--hero-ink2);border:1px solid var(--hero-rule);border-radius:999px;padding:6px 12px;transition:border-color .2s,color .2s}
+.hero .topbar a:hover{color:var(--hero-ink);border-color:#5a5b63}
+.hero .topbar nav{display:flex;gap:8px;flex-wrap:wrap}
+.hero h1{font-size:clamp(52px,8.4vw,112px);font-weight:800;letter-spacing:-0.045em;line-height:.88;margin-top:26px}
+.hero h1 .hot{background:linear-gradient(90deg,#e64a7a 0%,#f0602f 45%,#ffbf4d 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{font-size:clamp(17px,1.6vw,20px);color:#d9d6d1;max-width:34ch;margin:22px 0 0;line-height:1.45}
+.hero .sub em{font-style:italic;color:#fff}
+.hero .by{margin-top:22px;font-size:13px;color:var(--hero-ink2)}
+.hero .by b{color:var(--hero-ink);font-weight:600}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.btn{font:inherit;font-size:14px;font-weight:600;text-decoration:none;border-radius:999px;padding:11px 18px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:1px solid transparent}
+.btn.primary{background:var(--hero-ink);color:var(--hero)}
+.btn.primary:hover{background:#fff}
+.btn.ghost{border-color:#3a3b42;color:var(--hero-ink)}
+.btn.ghost:hover{border-color:#6a6b72}
+.heromap{position:relative;min-width:0}
+#heroMap{width:100%;height:auto;display:block;max-height:560px}
+.heroscale{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:11.5px;color:var(--hero-ink2);justify-content:flex-end;margin-top:6px}
+.heroscale i{display:block;width:150px;height:6px;border-radius:3px;background:var(--thermal)}
+.heronote{position:absolute;left:0;top:6px;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--hero-ink2)}
+.stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--hero-rule);margin-top:10px}
+.stat{padding:22px 22px 4px 0;min-width:0}
+.stat + .stat{padding-left:22px;border-left:1px solid var(--hero-rule)}
+.stat .v{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,3.4vw,44px);letter-spacing:-0.03em;line-height:1;color:#fff}
+.stat .v small{font-size:.5em;font-weight:600;color:var(--ember);margin-left:2px}
+.stat p{margin:10px 0 0;color:var(--hero-ink2);font-size:13.5px;line-height:1.45}
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr}
+  .hero .topbar{order:-2}
+  .heromap{order:-1;max-width:420px;margin:0 auto;width:100%}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat:nth-child(3){padding-left:0;border-left:0}
+  .stat:nth-child(n+3){border-top:1px solid var(--hero-rule)}
+}
 
-/* main grid */
-.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;margin-top:16px}
-@media (max-width:980px){.main{grid-template-columns:1fr}}
-.card{background:var(--panel);border-radius:var(--r);border:1px solid var(--rule);padding:16px;min-width:0}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.chip{font:inherit;font-size:13px;border:1px solid var(--rule);background:transparent;color:var(--ink2);border-radius:999px;padding:5px 11px;cursor:pointer}
-.chip:hover{border-color:var(--ink3);color:var(--ink)}
-.chip[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
-.chip:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--heat);outline-offset:2px}
-.maptools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:6px}
-.maptools label{font-size:13px;color:var(--ink2);display:flex;gap:6px;align-items:center}
-select,input[type=search]{font:inherit;font-size:13px;background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:5px 8px;max-width:100%}
-#map{width:100%;aspect-ratio:1/1.02;max-height:720px;display:block}
-#map path.t{stroke:var(--panel);stroke-width:.5;cursor:pointer;transition:opacity .15s}
+/* live weather */
+.live{margin-top:-1px;background:var(--panel);border-bottom:1px solid var(--rule)}
+.live .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;padding-block:14px}
+.live .lbl{display:flex;align-items:center;gap:10px;font-weight:600}
+.live .lbl small{font-weight:400;color:var(--ink3);font-size:12.5px}
+.live .dot{width:9px;height:9px;border-radius:50%;background:var(--ink3);flex:none}
+.live.on .dot{background:#2fa84f;box-shadow:0 0 0 0 rgba(47,168,79,.5);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,168,79,.45)}70%{box-shadow:0 0 0 9px rgba(47,168,79,0)}100%{box-shadow:0 0 0 0 rgba(47,168,79,0)}}
+.live .fc{display:flex;gap:6px;flex-wrap:wrap}
+.live .fc div{min-width:0;background:var(--bg);border-radius:10px;padding:6px 12px;display:flex;align-items:baseline;gap:8px}
+.live .fc b{font-family:var(--f-mono);font-weight:500;font-size:17px}
+.live .fc span{font-size:12.5px;color:var(--ink2)}
+.alertpill{background:var(--alert-bg);color:var(--alert);border-radius:999px;padding:4px 11px;font-weight:600;font-size:13px}
+
+/* ---------- body sections ---------- */
+main{padding-bottom:40px}
+.section{padding-top:64px}
+.sechead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 40px;align-items:end;margin-bottom:22px}
+.sechead .lede{margin:0}
+@media (max-width:860px){.sechead{grid-template-columns:1fr}}
+.explorer{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px}
+@media (max-width:1000px){.explorer{grid-template-columns:1fr}}
+.card{background:var(--panel);border-radius:var(--r);border:1px solid var(--rule);padding:18px;min-width:0}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--bg);border-radius:12px;padding:4px}
+.chip{font:inherit;font-size:13px;border:0;background:transparent;color:var(--ink2);border-radius:9px;padding:7px 11px;cursor:pointer;transition:background .15s,color .15s}
+.chip:hover{color:var(--ink);background:color-mix(in srgb,var(--panel) 60%,transparent)}
+.chip[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12),0 0 0 1px var(--rule)}
+.chip:focus-visible,.btn:focus-visible,input:focus-visible,tbody tr:focus-visible{outline:2px solid var(--heat);outline-offset:2px}
+.maptools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin:14px 0 4px}
+.maptools label{font-size:13px;color:var(--ink2);display:flex;gap:8px;align-items:center}
+input[type=search]{font:inherit;font-size:13.5px;background:var(--bg);color:var(--ink);border:1px solid transparent;border-radius:10px;padding:8px 12px;width:240px;max-width:100%}
+input[type=search]:focus{border-color:var(--rule);background:var(--panel)}
+.layerdesc{font-size:13.5px;color:var(--ink2);margin:6px 0 0;max-width:80ch}
+#map{width:100%;aspect-ratio:1/1.02;max-height:720px;display:block;margin-top:4px}
+#map path.t{stroke:var(--panel);stroke-width:.5;cursor:pointer}
 #map path.t:hover{stroke:var(--ink);stroke-width:1.4}
-#map path.sel{stroke:var(--ink);stroke-width:2.2}
-#map .cc{fill:#fff;stroke:#15171c;stroke-width:1.2}
-.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-top:6px}
-.legend .bar{height:10px;width:180px;max-width:50vw;border-radius:2px}
-.legend .sw{display:inline-flex;align-items:center;gap:5px}
-.legend .sw i{width:12px;height:12px;border-radius:2px;display:inline-block}
-.layerdesc{font-size:13px;color:var(--ink2);margin:4px 0 0}
-#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--panel);padding:6px 9px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .1s;z-index:20;max-width:240px}
+#map path.sel{stroke:var(--ink);stroke-width:2.4}
+#map .cc{fill:#fff;stroke:#121419;stroke-width:1.2}
+.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-top:8px}
+.legend .bar{height:8px;width:200px;max-width:50vw;border-radius:4px}
+.legend .sw{display:inline-flex;align-items:center;gap:6px}
+.legend .sw i{width:12px;height:12px;border-radius:3px;display:inline-block}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--panel);padding:7px 10px;border-radius:8px;font-size:12px;opacity:0;transition:opacity .1s;z-index:20;max-width:250px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 
-/* tract card */
-.tract .rank{font-family:var(--f-display);font-size:44px;font-weight:800;line-height:1}
-.tract .rank small{font-size:16px;color:var(--ink3);font-weight:500}
-.meter{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+/* tract report card */
+.tract{position:relative;overflow:hidden}
+.tract::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--thermal)}
+.tract .rank{font-family:var(--f-display);font-size:64px;font-weight:800;line-height:.9;letter-spacing:-0.04em}
+.tract .rank small{font-size:17px;color:var(--ink3);font-weight:400;letter-spacing:0}
+.thermo{position:relative;height:10px;border-radius:5px;background:var(--thermal);margin:14px 0 4px}
+.thermo i{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:var(--ink);transform:translateX(-50%);box-shadow:0 0 0 2px var(--panel)}
+.thermo-l{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:10.5px;color:var(--ink3)}
+.meter{height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
 .meter i{display:block;height:100%;border-radius:4px}
-.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13.5px;margin-top:10px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:13.5px;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--rule)}
 .kv dt{color:var(--ink2)} .kv dd{margin:0;font-family:var(--f-mono);text-align:right}
-.comp{display:grid;grid-template-columns:110px 1fr 40px;gap:6px 10px;align-items:center;font-size:13px;margin-top:12px}
-.pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600}
+.comp{display:grid;grid-template-columns:100px 1fr 38px;gap:8px 10px;align-items:center;font-size:13px;margin-top:14px}
+.pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
 .muted{color:var(--ink3);font-size:12.5px}
 
-/* findings */
-.section{margin-top:40px}
-.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:14px}
-.finding .big{font-family:var(--f-display);font-weight:800;font-size:38px;line-height:1.05;color:var(--heat)}
-.finding p{margin:8px 0 0;color:var(--ink2);font-size:14px}
-.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:14px}
-.charts svg{width:100%;height:auto;display:block}
+/* evidence */
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.charts .card h3{margin-bottom:4px}
+.charts svg{width:100%;height:auto;display:block;margin-top:8px}
 .axis text{fill:var(--ink3);font-family:var(--f-mono);font-size:10.5px}
 .axis line,.axis path{stroke:var(--rule)}
 .gridl line{stroke:var(--rule)}
-.tablewrap{overflow-x:auto;margin-top:14px}
-table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:720px}
-th{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule)}
-td{padding:7px 10px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.quote{margin-top:16px;padding:22px 24px;border-radius:var(--r);background:var(--panel);border:1px solid var(--rule);display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.quote .q{font-family:var(--f-display);font-size:clamp(20px,2.2vw,26px);font-weight:600;letter-spacing:-0.015em;line-height:1.25}
+.quote .mark{width:6px;align-self:stretch;border-radius:3px;background:var(--thermal)}
+
+/* table */
+.tablewrap{overflow-x:auto;padding:6px 6px 2px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px}
+th{font-family:var(--f-mono);font-weight:500;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--rule)}
+td{padding:9px 12px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:0}
 td.n{text-align:right;font-family:var(--f-mono)}
-tbody tr{cursor:pointer} tbody tr:hover{background:var(--bg)}
-.method{columns:2 320px;column-gap:32px;color:var(--ink2);font-size:14px;margin-top:12px}
-.method p{margin:0 0 12px;break-inside:avoid}
-footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink3)}
-footer a,.method a{color:var(--cool)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+td.rk{font-family:var(--f-display);font-weight:800;font-size:16px}
+td .sw{display:inline-block;width:46px;height:6px;border-radius:3px;background:var(--bg);vertical-align:middle;margin-right:8px;overflow:hidden}
+td .sw b{display:block;height:100%;background:var(--heat);border-radius:3px}
+tbody tr{cursor:pointer;transition:background .12s} tbody tr:hover{background:var(--bg)}
+
+/* method */
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.method .card h3{font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.method .card h3 i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.method .card p{margin:0;color:var(--ink2);font-size:14px}
+footer{margin-top:64px;background:var(--hero);color:var(--hero-ink2);font-size:13px}
+footer .wrap{padding-block:34px 40px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px}
+footer h3{color:var(--hero-ink);font-size:20px;margin-bottom:8px}
+footer p{margin:0 0 10px}
+footer a{color:var(--hero-ink)}
+@media (max-width:760px){footer .wrap{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 
 
-<div class="wrap">
-<header>
-  <div>
-    <div class="eyebrow">Baltimore City · 198 census tracts · summers 2019–2025</div>
-    <h1>Baltimore Heat Atlas</h1>
-    <p class="lede">Where summer heat, health and hardship overlap, neighbourhood by neighbourhood. Built from satellite temperature, CDC health estimates and Census data, and checked against heat-related EMS activations.</p>
+<section class="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <span>Thermal survey · Baltimore City · 2019–2025</span>
+      <nav aria-label="Project links">
+        <a href="#explore">Map</a>
+        <a href="#evidence">Evidence</a>
+        <a href="https://github.com/sahiljangra12/baltimore-heat-atlas/blob/main/paper/Baltimore_Heat_Vulnerability_Sahil_2026.pdf">Paper</a>
+        <a href="https://github.com/sahiljangra12/baltimore-heat-atlas">GitHub</a>
+      </nav>
+    </div>
+    <div>
+      <h1>Baltimore <span class="hot">Heat</span><br>Atlas</h1>
+      <p class="sub">Where summer heat, poor health and thin resources land on the <em>same blocks</em>, tract by tract.</p>
+      <div class="cta">
+        <a class="btn primary" href="#explore">Explore the map ↓</a>
+        <a class="btn ghost" href="https://github.com/sahiljangra12/baltimore-heat-atlas/blob/main/paper/Baltimore_Heat_Vulnerability_Sahil_2026.pdf">Read the paper</a>
+      </div>
+      <div class="by">Research by <b>Sahil</b> · MSE Data Science, Johns Hopkins University · Data as of October 2026</div>
+    </div>
+    <div class="heromap">
+      <div class="heronote">Ground temperature where people live</div>
+      <svg id="heroMap" role="img" aria-label="Baltimore's census tracts coloured by summer surface temperature"></svg>
+      <div class="heroscale"><span id="hsLo"></span><i></i><span id="hsHi"></span></div>
+    </div>
+    <div class="stats" id="stats"></div>
   </div>
-  <div class="by">Research by <b>Sahil</b><br>MSE Data Science, Johns Hopkins University<br>Data as of October 2026</div>
-</header>
+</section>
 
 <div class="live" id="live" aria-live="polite">
-  <div><span class="dot"></span><b>Baltimore today</b> <span class="muted" id="liveSrc">National Weather Service forecast</span></div>
-  <div class="fc" id="fc"><span class="muted">Loading live forecast…</span></div>
-  <div id="alerts"></div>
-</div>
-
-<div class="main">
-  <div class="card">
-    <div class="maptools">
-      <div class="chips" id="chips" role="group" aria-label="Map layer"></div>
-    </div>
-    <div class="maptools">
-      <label for="find">Find a neighbourhood <input type="search" id="find" list="csalist" placeholder="e.g. Clifton-Berea"></label>
-      <datalist id="csalist"></datalist>
-      <label><input type="checkbox" id="showcool" checked> Cooling centres (2026)</label>
-    </div>
-    <p class="layerdesc" id="layerdesc"></p>
-    <svg id="map" role="img" aria-label="Map of Baltimore City census tracts"></svg>
-    <div class="legend" id="legend"></div>
+  <div class="wrap">
+    <div class="lbl"><span class="dot"></span>Baltimore today <small id="liveSrc">National Weather Service</small></div>
+    <div class="fc" id="fc"><span class="muted">Loading live forecast…</span></div>
+    <div id="alerts"></div>
   </div>
-  <aside class="card tract" id="tract" aria-live="polite"></aside>
 </div>
 
-<section class="section">
-  <div class="eyebrow">What the data show</div>
-  <h2>Four findings</h2>
-  <div class="findings" id="findings"></div>
+<main class="wrap">
+<section class="section" id="explore">
+  <div class="sechead">
+    <div><div class="eyebrow">Explore</div><h2>Every tract, nine lenses</h2></div>
+    <p class="lede">Switch layers to see heat, health, resources and history. Select any tract for its full report card, or search a neighbourhood.</p>
+  </div>
+  <div class="explorer">
+    <div class="card">
+      <div class="seg" id="chips" role="group" aria-label="Map layer"></div>
+      <div class="maptools">
+        <label for="find">Find <input type="search" id="find" list="csalist" placeholder="Search a neighbourhood"></label>
+        <datalist id="csalist"></datalist>
+        <label><input type="checkbox" id="showcool" checked> Cooling centres (2026)</label>
+      </div>
+      <p class="layerdesc" id="layerdesc"></p>
+      <svg id="map" role="img" aria-label="Map of Baltimore City census tracts"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+    <aside class="card tract" id="tract" aria-live="polite"></aside>
+  </div>
 </section>
 
-<section class="section">
-  <div class="eyebrow">Evidence</div>
-  <h2>Does the index track real harm?</h2>
+<section class="section" id="evidence">
+  <div class="sechead">
+    <div><div class="eyebrow">Evidence</div><h2>Does the index track real harm?</h2></div>
+    <p class="lede">Three independent checks: ambulance calls for heat illness, the 1937 redlining maps, and what the weather stations record at night.</p>
+  </div>
   <div class="charts">
-    <div class="card"><h3>Heat vulnerability vs heat-related EMS calls</h3><p class="muted" id="valnote"></p><svg id="chVal" viewBox="0 0 420 300"></svg></div>
-    <div class="card"><h3>1937 redlining grade and today's surface heat</h3><p class="muted">Tracts mostly covered by the HOLC map, mean daytime surface temperature (bars) and tree cover (labels).</p><svg id="chHolc" viewBox="0 0 420 300"></svg></div>
+    <div class="card"><h3>Vulnerability vs heat-related EMS calls</h3><p class="muted" id="valnote"></p><svg id="chVal" viewBox="0 0 420 300"></svg></div>
+    <div class="card"><h3>1937 redlining and today's heat</h3><p class="muted">Tracts mostly covered by the HOLC map: mean daytime surface temperature and tree cover.</p><svg id="chHolc" viewBox="0 0 420 300"></svg></div>
     <div class="card"><h3>Hot nights downtown vs the airport</h3><p class="muted" id="nightnote"></p><svg id="chNight" viewBox="0 0 420 300"></svg></div>
   </div>
+  <div class="quote"><div class="mark"></div><div class="q" id="quote"></div></div>
 </section>
 
-<section class="section">
-  <div class="eyebrow">Priority list</div>
-  <h2>The 20 most heat-vulnerable tracts</h2>
-  <p class="lede">Ranked by the Heat Vulnerability Index. “Top-20% probability” is the share of 1,000 simulations, varying survey error, health-model error, year-to-year temperature and index weights, in which the tract stayed in the city's most vulnerable fifth. Select a row to see it on the map.</p>
-  <div class="tablewrap card"><table id="toptable"><thead><tr>
-    <th>Rank</th><th>Tract</th><th>Neighbourhood (CSA)</th><th>HVI</th><th>90% rank range</th><th>Top-20% prob.</th><th>Day °C</th><th>Night °C</th><th>Poverty %</th><th>Tree %</th></tr></thead><tbody></tbody></table></div>
+<section class="section" id="priority">
+  <div class="sechead">
+    <div><div class="eyebrow">Priority list</div><h2>The 20 most heat-vulnerable tracts</h2></div>
+    <p class="lede">“Certainty” is the share of 1,000 simulations, varying survey error, health-model error, year-to-year temperature and index weights, in which the tract stayed in the city's most vulnerable fifth. Select a row to see it on the map.</p>
+  </div>
+  <div class="card tablewrap"><table id="toptable"><thead><tr>
+    <th>Rank</th><th>Tract</th><th>Neighbourhood</th><th>HVI</th><th>90% rank range</th><th>Certainty</th><th>Day °C</th><th>Night °C</th><th>Poverty %</th><th>Tree %</th></tr></thead><tbody></tbody></table></div>
 </section>
 
-<section class="section">
-  <div class="eyebrow">Method</div>
-  <h2>How the index is built</h2>
+<section class="section" id="method">
+  <div class="sechead">
+    <div><div class="eyebrow">Method</div><h2>How the index is built</h2></div>
+    <p class="lede">21 indicators, ranked within Baltimore, averaged into three components with equal weight. Full details, code and data are on GitHub.</p>
+  </div>
   <div class="method">
-    <p><b>Exposure.</b> Daytime land surface temperature from 31 cloud-screened Landsat 8/9 scenes (June–August, 2019–2025, 30 m), averaged where people live using 2020 census-block population; plus night-time surface temperature from MODIS Aqua (about 1:30 a.m.).</p>
-    <p><b>Sensitivity.</b> Share aged 65+ and under 5, any disability (ACS 2020–2024), and adult heart disease, COPD, asthma, diabetes, stroke and frequent mental distress (CDC PLACES 2025).</p>
-    <p><b>Low adaptive capacity.</b> Poverty, no vehicle, older adults living alone, limited English, no insurance, no internet, threat of utility shut-off, pre-1940 housing, distance to the nearest 2026 cooling centre, and lack of tree cover.</p>
-    <p><b>Index.</b> Each of 21 indicators is converted to a percentile within Baltimore; the three components are averaged with equal weight. A principal-components version and a geometric mean rank tracts almost identically.</p>
-    <p><b>Uncertainty.</b> 1,000 Monte Carlo draws propagate Census margins of error, PLACES confidence intervals, year-to-year temperature variation and random component weights.</p>
-    <p><b>Validation.</b> Aggregated to 20 ZIP code areas, the index is compared with the CDC Heat &amp; Health Index percentile of heat-related EMS activations reported to NEMSIS, 2020–2022, which was not used to build it.</p>
+    <div class="card"><h3><i style="background:var(--heat)"></i>Exposure</h3><p>Daytime surface temperature from 31 cloud-screened Landsat 8/9 scenes (June–August 2019–2025, 30 m), averaged where people live; night-time surface temperature from MODIS Aqua (about 1:30 a.m.).</p></div>
+    <div class="card"><h3><i style="background:var(--cool)"></i>Sensitivity</h3><p>Aged 65+ and under 5, any disability (ACS 2020–2024); adult heart disease, COPD, asthma, diabetes, stroke and frequent mental distress (CDC PLACES 2025).</p></div>
+    <div class="card"><h3><i style="background:var(--cool)"></i>Low adaptive capacity</h3><p>Poverty, no car, older adults living alone, limited English, no insurance, no internet, utility shut-off threat, pre-1940 housing, distance to a cooling centre, and lack of trees.</p></div>
+    <div class="card"><h3><i style="background:var(--night)"></i>Uncertainty and validation</h3><p>1,000 Monte Carlo draws of data error and weights. Checked against heat-related EMS activations (NEMSIS 2020–2022, via CDC Heat &amp; Health Index) in 20 ZIP areas.</p></div>
   </div>
 </section>
+</main>
 
 <footer>
-  <p><b>Sources:</b> USGS Landsat Collection 2 and NASA MODIS (via Microsoft Planetary Computer); ESA WorldCover 2021; CDC PLACES 2025; U.S. Census Bureau ACS 2020–2024 and TIGER 2020; CDC/ATSDR SVI 2022 and Heat &amp; Health Index 2024; Mapping Inequality (University of Richmond); Baltimore City Health Department cooling centres 2026; BNIA Community Statistical Areas; NOAA RCC-ACIS station data; live forecast from api.weather.gov.</p>
-  <p>Satellite surface temperature measures roofs and pavement, not the air. Health values are model-based estimates. This atlas describes neighbourhoods, not individuals. In a heat emergency call 911; for Baltimore cooling centre information call 311.</p>
-  <p>© 2026 Sahil · Johns Hopkins University. Full paper: “Where Heat Meets Vulnerability” (October 2026).</p>
+  <div class="wrap">
+    <div>
+      <h3>Baltimore Heat Atlas</h3>
+      <p>By Sahil, MSE Data Science, Johns Hopkins University, October 2026. Paper: “Where Heat Meets Vulnerability: A Validated, Uncertainty-Aware Heat Vulnerability Index for Baltimore City's Census Tracts.”</p>
+      <p><a href="https://github.com/sahiljangra12/baltimore-heat-atlas/blob/main/paper/Baltimore_Heat_Vulnerability_Sahil_2026.pdf">Paper (PDF)</a> · <a href="https://github.com/sahiljangra12/baltimore-heat-atlas">Code and data on GitHub</a></p>
+      <p>Satellite surface temperature measures roofs and pavement, not the air. Health values are model-based estimates. The atlas describes neighbourhoods, not individuals. In a heat emergency call 911; for cooling centre information call 311.</p>
+    </div>
+    <div>
+      <p><b style="color:var(--hero-ink)">Sources</b></p>
+      <p>USGS Landsat Collection 2 and NASA MODIS (Microsoft Planetary Computer) · ESA WorldCover 2021 · CDC PLACES 2025 · U.S. Census Bureau ACS 2020–2024 and TIGER 2020 · CDC/ATSDR SVI 2022 and Heat &amp; Health Index 2024 · Mapping Inequality, University of Richmond · Baltimore City Health Department · BNIA · NOAA RCC-ACIS · live forecast from api.weather.gov</p>
+    </div>
+  </div>
 </footer>
-</div>
 <div id="tip" role="tooltip"></div>
 
 <script>
@@ -278,12 +382,14 @@ function select(f) {
   const clsCol = {"Very high":"var(--heat-deep)","High":"var(--heat)","Moderate":"#d99a3b","Low":"var(--cool)","Very low":"var(--cool)"}[p.cls];
   el.innerHTML = `
     <div class="eyebrow">Census tract ${p.name} · ${p.id}</div>
-    <h3 style="font-size:20px;margin-top:2px">${p.csa || ""}</h3>
-    <div style="display:flex;align-items:end;gap:12px;margin-top:12px">
+    <h3 style="font-size:24px;margin-top:4px;font-weight:800;letter-spacing:-0.02em">${p.csa || ""}</h3>
+    <div style="display:flex;align-items:end;gap:12px;margin-top:14px;flex-wrap:wrap">
       <div class="rank">#${p.rank}<small> of ${N}</small></div>
       <span class="pill" style="background:color-mix(in srgb, ${clsCol} 18%, transparent);color:${clsCol}">${p.cls} vulnerability</span>
     </div>
-    <p class="muted" style="margin:6px 0 0">90% of simulations place it between #${Math.round(p.rlo)} and #${Math.ceil(p.rhi)}; in the top 20% in ${Math.round(p.p20*100)}% of them.</p>
+    <div class="thermo" aria-hidden="true"><i style="left:${(100*(1-(p.rank-1)/(N-1))).toFixed(1)}%"></i></div>
+    <div class="thermo-l"><span>least vulnerable</span><span>most vulnerable</span></div>
+    <p class="muted" style="margin:8px 0 0">90% of simulations place it between #${Math.round(p.rlo)} and #${Math.ceil(p.rhi)}; in the top 20% in ${Math.round(p.p20*100)}% of them.</p>
     <div class="comp">
       <span>Exposure</span>${bar(p.sE,"var(--heat)")}<span class="num">${fmt(p.sE,2)}</span>
       <span>Sensitivity</span>${bar(p.sS,"var(--cool)")}<span class="num">${fmt(p.sS,2)}</span>
@@ -317,14 +423,37 @@ d3.select("#find").on("change", function(){
 // ---------- findings ----------
 const vs = R.val_spearman;
 const nights = R.station_summers;
-const findings = [
-  {big:`${R.lst_range[0].toFixed(1)}–${R.lst_range[1].toFixed(1)} °C`, t:`Range of average summer surface temperature where people live, across ${R.n_scored} tracts. Tree cover explains most of it (ρ = ${R.spearman_lst_tree.toFixed(2)}): each 10 points of canopy goes with ${(-10*R.ols_lst_tree_built.b_tree).toFixed(1)} °C cooler ground.`},
-  {big:`+${R.holc_D_minus_A_or_B.toFixed(1)} °C`, t:`How much hotter tracts redlined (grade D) in 1937 are today than grade A/B tracts. D areas average ${R.holc_tree_by_grade.D.toFixed(0)}% tree cover vs ${R.holc_tree_by_grade.B.toFixed(0)}% in B areas.`},
-  {big:`${R.veryhigh_pop.toLocaleString()}`, t:`Residents of the ${R.veryhigh_n} most vulnerable tracts, concentrated in two clusters in East and West Baltimore (Moran's I = ${R.moran_hvi[0].toFixed(2)}). ${R.n_robust_top20} tracts stay in the top fifth in at least 90% of simulations.`},
-  {big:`ρ = ${vs.hvi[0].toFixed(2)}`, t:`Correlation between the index and heat-related EMS activations across ${R.zcta_n} ZIP areas (95% CI ${R.val_hvi_boot_ci[0].toFixed(2)}–${R.val_hvi_boot_ci[1].toFixed(2)}). The CDC Social Vulnerability Index shows ρ = ${vs.svi_themes[0].toFixed(2)}.`}
+const stats = [
+  {v:`${R.lst_range[0].toFixed(1)}–${R.lst_range[1].toFixed(1)}<small>°C</small>`, t:`Summer ground temperature where people live, coolest to hottest tract.`},
+  {v:`+${R.holc_D_minus_A_or_B.toFixed(1)}<small>°C</small>`, t:`Hotter today in areas redlined in 1937 than in grade A/B areas.`},
+  {v:`${(R.veryhigh_pop/1000).toFixed(0)}k`, t:`Residents of the ${R.veryhigh_n} most vulnerable tracts, in East and West Baltimore.`},
+  {v:`ρ ${vs.hvi[0].toFixed(2)}`, t:`Match with heat-related EMS calls across ${R.zcta_n} ZIP areas (CDC SVI: ${vs.svi_themes[0].toFixed(2)}).`}
 ];
-d3.select("#findings").selectAll("div").data(findings).join("div").attr("class","card finding")
-  .html(d => `<div class="big">${d.big}</div><p>${d.t}</p>`);
+d3.select("#stats").selectAll("div").data(stats).join("div").attr("class","stat")
+  .html(d => `<div class="v">${d.v}</div><p>${d.t}</p>`);
+document.getElementById("quote").textContent =
+  `Each extra 10% of tree cover goes with ${(-10*R.ols_lst_tree_built.b_tree).toFixed(1)} °C cooler ground, and limited resources to cope, not disease alone, explain where heat sends more people to EMS than temperature predicts.`;
+
+// ---------- hero thermal map ----------
+(function hero(){
+  const hs = d3.select("#heroMap"), w = 520, h = 540;
+  hs.attr("viewBox", `0 0 ${w} ${h}`);
+  const pj = d3.geoMercator().fitExtent([[10,30],[w-10,h-10]], DATA.tracts), pth = d3.geoPath(pj);
+  const vals = scored.map(f => f.properties.lst).sort(d3.ascending);
+  const lo = d3.quantile(vals,.03), hi = d3.quantile(vals,.97);
+  const th = d3.scaleSequential(d3.interpolateRgbBasis(["#1a0b2e","#4a1260","#8e1f5e","#d2481b","#f39a2b","#ffe08a"])).domain([lo,hi]).clamp(true);
+  const defs = hs.append("defs");
+  const fl = defs.append("filter").attr("id","glow").attr("x","-20%").attr("y","-20%").attr("width","140%").attr("height","140%");
+  fl.append("feGaussianBlur").attr("stdDeviation",9).attr("result","b");
+  const mg = fl.append("feMerge"); mg.append("feMergeNode").attr("in","b"); mg.append("feMergeNode").attr("in","SourceGraphic");
+  const gg = hs.append("g").attr("filter","url(#glow)");
+  gg.selectAll("path").data(F).join("path").attr("d", pth)
+    .attr("fill", f => f.properties.lst == null ? "#1c1d22" : th(f.properties.lst))
+    .attr("stroke","#0b0c10").attr("stroke-width",.6)
+    .append("title").text(f => `Tract ${f.properties.name}${f.properties.csa ? " · " + f.properties.csa : ""}: ${f.properties.lst == null ? "no data" : f.properties.lst.toFixed(1) + " °C"}`);
+  document.getElementById("hsLo").textContent = lo.toFixed(0) + " °C";
+  document.getElementById("hsHi").textContent = hi.toFixed(0) + " °C";
+})();
 
 // ---------- charts ----------
 function axes(s, x, y, w, h, m, xl, yl) {
@@ -381,8 +510,10 @@ function chNight() {
 // ---------- top table ----------
 const topList = scored.slice().sort((a,b)=>a.properties.rank-b.properties.rank).slice(0,20);
 d3.select("#toptable tbody").selectAll("tr").data(topList).join("tr")
-  .html(f => { const p=f.properties; return `<td class="n">${p.rank}</td><td>${p.name}</td><td>${p.csa||""}</td><td class="n">${fmt(p.hvi,3)}</td><td class="n">${Math.round(p.rlo)}–${Math.ceil(p.rhi)}</td><td class="n">${Math.round(p.p20*100)}%</td><td class="n">${fmt(p.lst)}</td><td class="n">${fmt(p.night)}</td><td class="n">${fmt(p.pov,0)}</td><td class="n">${fmt(p.tree,0)}</td>`; })
-  .on("click", (e,f) => { select(f); document.getElementById("map").scrollIntoView({behavior:"smooth", block:"center"}); });
+  .html(f => { const p=f.properties; return `<td class="rk">${p.rank}</td><td class="num">${p.name}</td><td>${p.csa||""}</td><td class="n"><span class="sw"><b style="width:${Math.round(p.hvi*100)}%"></b></span>${fmt(p.hvi,3)}</td><td class="n">${Math.round(p.rlo)}–${Math.ceil(p.rhi)}</td><td class="n">${Math.round(p.p20*100)}%</td><td class="n">${fmt(p.lst)}</td><td class="n">${fmt(p.night)}</td><td class="n">${fmt(p.pov,0)}</td><td class="n">${fmt(p.tree,0)}</td>`; })
+  .attr("tabindex",0)
+  .on("click", (e,f) => { select(f); document.getElementById("explore").scrollIntoView({behavior:"smooth", block:"start"}); })
+  .on("keydown", (e,f) => { if (e.key === "Enter") { select(f); document.getElementById("explore").scrollIntoView({behavior:"smooth"}); } });
 
 // ---------- live NWS forecast ----------
 async function live() {
@@ -391,9 +522,9 @@ async function live() {
     const pt = await (await fetch("https://api.weather.gov/points/39.2904,-76.6122", {headers:{Accept:"application/geo+json"}})).json();
     const f = await (await fetch(pt.properties.forecast)).json();
     const per = f.properties.periods.slice(0,4);
-    fc.innerHTML = per.map(p => `<div><b>${p.temperature}°${p.temperatureUnit}</b><span>${p.name} · ${p.shortForecast}</span></div>`).join("");
+    fc.innerHTML = per.map(p => `<div><b>${p.temperature}°${p.temperatureUnit}</b><span>${p.name}, ${p.shortForecast.toLowerCase()}</span></div>`).join("");
     box.classList.add("on");
-    document.getElementById("liveSrc").textContent = "National Weather Service · updated " + new Date(f.properties.updateTime || Date.now()).toLocaleString([], {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"});
+    document.getElementById("liveSrc").textContent = "National Weather Service · updated " + new Date(f.properties.updateTime || Date.now()).toLocaleString("en-US", {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"});
     const a = await (await fetch("https://api.weather.gov/alerts/active?point=39.2904,-76.6122")).json();
     const heat = (a.features||[]).filter(x => /heat/i.test(x.properties.event));
     al.innerHTML = heat.length ? heat.map(x => `<span class="alertpill">${x.properties.event}</span>`).join(" ") + ` <span class="muted">Check the darkest tracts on the map first.</span>` : `<span class="muted">No heat alerts in effect.</span>`;
