@@ -84,19 +84,48 @@ a{color:inherit}
   .stat:nth-child(n+3){border-top:1px solid var(--hero-rule)}
 }
 
-/* live weather */
-.live{margin-top:-1px;background:var(--panel);border-bottom:1px solid var(--rule)}
-.live .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;padding-block:14px}
-.live .lbl{display:flex;align-items:center;gap:10px;font-weight:600}
-.live .lbl small{font-weight:400;color:var(--ink3);font-size:12.5px}
-.live .dot{width:9px;height:9px;border-radius:50%;background:var(--ink3);flex:none}
-.live.on .dot{background:#2fa84f;box-shadow:0 0 0 0 rgba(47,168,79,.5);animation:pulse 2.4s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,168,79,.45)}70%{box-shadow:0 0 0 9px rgba(47,168,79,0)}100%{box-shadow:0 0 0 0 rgba(47,168,79,0)}}
-.live .fc{display:flex;gap:6px;flex-wrap:wrap}
-.live .fc div{min-width:0;background:var(--bg);border-radius:10px;padding:6px 12px;display:flex;align-items:baseline;gap:8px}
-.live .fc b{font-family:var(--f-mono);font-weight:500;font-size:17px}
-.live .fc span{font-size:12.5px;color:var(--ink2)}
-.alertpill{background:var(--alert-bg);color:var(--alert);border-radius:999px;padding:4px 11px;font-weight:600;font-size:13px}
+/* live weather bar: sticky, always on top */
+.livebar{position:sticky;top:0;z-index:30;background:rgba(11,12,16,.92);-webkit-backdrop-filter:saturate(140%) blur(12px);backdrop-filter:saturate(140%) blur(12px);color:var(--hero-ink);padding-top:env(safe-area-inset-top,0px)}
+.livebar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,#4a1260,#d2481b,#ffbf4d,#d2481b,#4a1260);background-size:200% 100%;animation:flow 6s linear infinite}
+@keyframes flow{to{background-position:200% 0}}
+.livebar .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding-block:10px}
+.lb-tag{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.14em;font-weight:500;color:#fff;background:linear-gradient(90deg,#c0391a,#e8692f);padding:5px 10px 5px 9px;border-radius:999px;box-shadow:0 0 0 0 rgba(240,106,54,.6);animation:tagglow 2.8s ease-in-out infinite}
+@keyframes tagglow{0%,100%{box-shadow:0 0 0 0 rgba(240,106,54,.0),0 0 14px rgba(240,106,54,.25)}50%{box-shadow:0 0 0 4px rgba(240,106,54,.18),0 0 22px rgba(240,106,54,.45)}}
+.lb-tag .lb-city{letter-spacing:.06em;font-weight:400;opacity:.9;text-transform:none;font-family:var(--f-body);font-size:12.5px}
+.livebar .dot{width:8px;height:8px;border-radius:50%;background:#fff;flex:none;animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.lb-now{display:flex;align-items:center;gap:12px}
+.lb-temp{font-family:var(--f-display);font-weight:800;font-size:34px;letter-spacing:-0.03em;line-height:1;background:linear-gradient(180deg,#fff 30%,#ffbf4d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lb-temp sup{font-size:15px;font-weight:600;vertical-align:14px;margin-left:1px}
+.lb-meta{display:flex;flex-direction:column;line-height:1.25}
+.lb-meta b{font-weight:600;font-size:14px}
+.lb-meta span{font-size:11.5px;color:var(--hero-ink2)}
+.lb-thermo{width:150px}
+.lb-tube{height:8px;border-radius:5px;background:#24252b;overflow:hidden;position:relative}
+.lb-tube i{position:absolute;inset:0 auto 0 0;width:0;border-radius:5px;background:linear-gradient(90deg,#4a6cf0,#9a8cf0 30%,#f0602f 70%,#ffbf4d);background-size:150px 100%;transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
+.lb-tube i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:shine 3.2s ease-in-out 1.8s infinite}
+@keyframes shine{to{transform:translateX(250%)}}
+.lb-ticks{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:9.5px;color:var(--hero-ink2);margin-top:3px}
+.livebar .fc{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.livebar .fc div{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:5px 10px;display:flex;align-items:baseline;gap:7px;opacity:0;transform:translateY(6px);animation:rise .6s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.livebar .fc b{font-family:var(--f-mono);font-weight:500;font-size:14px}
+.livebar .fc span{font-size:11.5px;color:var(--hero-ink2);white-space:nowrap}
+.lb-alerts:empty{display:none}
+.alertpill{background:#b3121f;color:#fff;border-radius:999px;padding:5px 12px;font-weight:600;font-size:12.5px;animation:alarm 1.6s ease-in-out infinite;display:inline-flex;gap:6px;align-items:center}
+@keyframes alarm{0%,100%{box-shadow:0 0 0 0 rgba(255,60,60,.0)}50%{box-shadow:0 0 0 5px rgba(255,60,60,.25),0 0 18px rgba(255,60,60,.5)}}
+.lb-ok{font-size:12px;color:#8fd6a2;display:inline-flex;align-items:center;gap:6px}
+.livebar.heat .lb-tag{background:linear-gradient(90deg,#9d0f1b,#e0313c)}
+@media (max-width:1320px){.livebar .fc div:nth-child(4){display:none}}
+@media (max-width:1100px){.lb-thermo{display:none}}
+@media (max-width:760px){.lb-thermo{display:none}.livebar .fc{margin-left:0}.livebar .fc div:nth-child(n+3){display:none}.lb-temp{font-size:28px}}
+
+/* Maryland flag, faded behind the opening section */
+.mdflag{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.13;
+  -webkit-mask-image:radial-gradient(120% 90% at 22% 40%,#000 0%,rgba(0,0,0,.55) 45%,transparent 78%);
+          mask-image:radial-gradient(120% 90% at 22% 40%,#000 0%,rgba(0,0,0,.55) 45%,transparent 78%)}
+.mdflag svg{width:100%;height:100%;display:block;filter:saturate(.9)}
+@media (prefers-color-scheme:dark){.mdflag{opacity:.12}}
 
 /* ---------- body sections ---------- */
 main{padding-bottom:40px}
@@ -184,7 +213,45 @@ footer a{color:var(--hero-ink)}
 <body>
 
 
+<div class="livebar" id="live" aria-live="polite">
+  <div class="wrap">
+    <div class="lb-tag"><span class="dot"></span>LIVE<span class="lb-city">Baltimore</span></div>
+    <div class="lb-now" id="lbNow">
+      <div class="lb-temp"><span id="lbTemp">--</span><sup>°F</sup></div>
+      <div class="lb-meta"><b id="lbCond">Loading forecast…</b><span id="liveSrc">National Weather Service</span></div>
+    </div>
+    <div class="lb-thermo" aria-hidden="true"><div class="lb-tube"><i id="lbFill"></i></div><div class="lb-ticks"><span>40</span><span>70</span><span>100°F</span></div></div>
+    <div id="alerts" class="lb-alerts"></div>
+    <div class="fc" id="fc"></div>
+  </div>
+</div>
 <section class="hero">
+<div class="mdflag" aria-hidden="true"><svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <g id="calvert">
+      <rect width="150" height="100" fill="#EAAA00"/>
+      <g fill="#111"><rect x="25" width="25" height="100"/><rect x="75" width="25" height="100"/><rect x="125" width="25" height="100"/></g>
+      <clipPath id="bend"><polygon points="0,18 0,-1 26,-1 150,82 150,101 124,101"/></clipPath>
+      <g clip-path="url(#bend)"><rect width="150" height="100" fill="#111"/><g fill="#EAAA00"><rect x="25" width="25" height="100"/><rect x="75" width="25" height="100"/><rect x="125" width="25" height="100"/></g></g>
+    </g>
+    <g id="crossbody">
+      <rect x="68" y="12" width="14" height="76"/><rect x="37" y="43" width="76" height="14"/>
+      <circle cx="75" cy="12" r="7"/><circle cx="67" cy="17" r="5.5"/><circle cx="83" cy="17" r="5.5"/>
+      <circle cx="75" cy="88" r="7"/><circle cx="67" cy="83" r="5.5"/><circle cx="83" cy="83" r="5.5"/>
+      <circle cx="37" cy="50" r="7"/><circle cx="42" cy="42" r="5.5"/><circle cx="42" cy="58" r="5.5"/>
+      <circle cx="113" cy="50" r="7"/><circle cx="108" cy="42" r="5.5"/><circle cx="108" cy="58" r="5.5"/>
+    </g>
+    <clipPath id="qW"><rect width="75" height="50"/><rect x="75" y="50" width="75" height="50"/></clipPath>
+    <clipPath id="qR"><rect x="75" width="75" height="50"/><rect y="50" width="75" height="50"/></clipPath>
+    <g id="crossland">
+      <rect width="150" height="100" fill="#fff"/>
+      <rect x="75" width="75" height="50" fill="#C8102E"/><rect y="50" width="75" height="50" fill="#C8102E"/>
+      <use href="#crossbody" fill="#C8102E" clip-path="url(#qW)"/>
+      <use href="#crossbody" fill="#fff" clip-path="url(#qR)"/>
+    </g>
+  </defs>
+  <use href="#calvert"/><use href="#crossland" x="150"/><use href="#crossland" y="100"/><use href="#calvert" x="150" y="100"/>
+</svg></div>
   <div class="wrap">
     <div class="topbar">
       <span>Thermal survey · Baltimore City · 2019–2025</span>
@@ -213,13 +280,6 @@ footer a{color:var(--hero-ink)}
   </div>
 </section>
 
-<div class="live" id="live" aria-live="polite">
-  <div class="wrap">
-    <div class="lbl"><span class="dot"></span>Baltimore today <small id="liveSrc">National Weather Service</small></div>
-    <div class="fc" id="fc"><span class="muted">Loading live forecast…</span></div>
-    <div id="alerts"></div>
-  </div>
-</div>
 
 <main class="wrap">
 <section class="section" id="explore">
@@ -518,18 +578,30 @@ d3.select("#toptable tbody").selectAll("tr").data(topList).join("tr")
 // ---------- live NWS forecast ----------
 async function live() {
   const box = document.getElementById("live"), fc = document.getElementById("fc"), al = document.getElementById("alerts");
+  const tempEl = document.getElementById("lbTemp"), cond = document.getElementById("lbCond"), fill = document.getElementById("lbFill");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   try {
     const pt = await (await fetch("https://api.weather.gov/points/39.2904,-76.6122", {headers:{Accept:"application/geo+json"}})).json();
-    const f = await (await fetch(pt.properties.forecast)).json();
-    const per = f.properties.periods.slice(0,4);
-    fc.innerHTML = per.map(p => `<div><b>${p.temperature}°${p.temperatureUnit}</b><span>${p.name}, ${p.shortForecast.toLowerCase()}</span></div>`).join("");
+    const [hourly, daily] = await Promise.all([fetch(pt.properties.forecastHourly).then(r=>r.json()), fetch(pt.properties.forecast).then(r=>r.json())]);
+    const now = hourly.properties.periods[0];
+    const target = now.temperature;
+    cond.textContent = now.shortForecast;
+    document.getElementById("liveSrc").textContent = "NWS · updated " + new Date(hourly.properties.updateTime || Date.now()).toLocaleString("en-US", {hour:"numeric", minute:"2-digit"});
+    // count-up and thermometer fill
+    if (reduce) tempEl.textContent = target;
+    else { const t0 = performance.now(), d = 1400, start = Math.max(0, target - 25);
+      (function step(t){ const k = Math.min(1,(t-t0)/d), e = 1-Math.pow(1-k,3); tempEl.textContent = Math.round(start + (target-start)*e); if (k<1) requestAnimationFrame(step); })(t0); }
+    requestAnimationFrame(() => { fill.style.width = Math.max(4, Math.min(100, (target - 30) / (105 - 30) * 100)) + "%"; });
+    const per = daily.properties.periods.slice(0,4);
+    fc.innerHTML = per.map((p,i) => `<div style="animation-delay:${.25+i*.12}s"><b>${p.temperature}°</b><span>${p.name}</span></div>`).join("");
     box.classList.add("on");
-    document.getElementById("liveSrc").textContent = "National Weather Service · updated " + new Date(f.properties.updateTime || Date.now()).toLocaleString("en-US", {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"});
     const a = await (await fetch("https://api.weather.gov/alerts/active?point=39.2904,-76.6122")).json();
     const heat = (a.features||[]).filter(x => /heat/i.test(x.properties.event));
-    al.innerHTML = heat.length ? heat.map(x => `<span class="alertpill">${x.properties.event}</span>`).join(" ") + ` <span class="muted">Check the darkest tracts on the map first.</span>` : `<span class="muted">No heat alerts in effect.</span>`;
+    if (heat.length) { box.classList.add("heat"); al.innerHTML = heat.map(x => `<span class="alertpill">⚠ ${x.properties.event}</span>`).join(" "); }
+    else al.innerHTML = `<span class="lb-ok">● No heat alerts</span>`;
   } catch (e) {
-    fc.innerHTML = `<span class="muted">Live forecast appears when this page is opened from the published website (it reads api.weather.gov).</span>`;
+    cond.textContent = "Live forecast on the published site";
+    document.getElementById("liveSrc").textContent = "Reads api.weather.gov when opened from the website";
   }
 }
 
