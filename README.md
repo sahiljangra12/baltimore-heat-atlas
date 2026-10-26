@@ -7,6 +7,7 @@
 [![Live dashboard](https://img.shields.io/badge/Live_dashboard-open-d2481b?style=for-the-badge)](https://sahiljangra12.github.io/baltimore-heat-atlas/)
 [![Paper PDF](https://img.shields.io/badge/Paper-PDF-15171c?style=for-the-badge)](paper/Baltimore_Heat_Vulnerability_Sahil_2026.pdf)
 [![Data](https://img.shields.io/badge/Tract_data-CSV-2a6fc9?style=for-the-badge)](data/processed/baltimore_heat_tracts.csv)
+[![Public app](https://img.shields.io/badge/Public_app-Charm_City_Pulse-f2b705?style=for-the-badge)](https://sahiljangra12.github.io/charm-city-pulse/)
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Landsat](https://img.shields.io/badge/Landsat_8%2F9-2019--2025-5b4bc4)
@@ -153,3 +154,8 @@ Code is released under the [MIT License](LICENSE). Derived data are shared under
 ---
 
 <sub>Satellite land surface temperature measures roofs and pavement, not air temperature. Health values are model-based estimates. The atlas describes neighbourhoods, not individuals. In a heat emergency call 911; for Baltimore cooling-centre information call 311.</sub>
+
+## Related work
+
+- **[Charm City Pulse](https://github.com/sahiljangra12/charm-city-pulse)** ([live app](https://sahiljangra12.github.io/charm-city-pulse/)) uses this atlas's index, surface temperatures and land cover. It turns them into plain-language block reports for residents and pairs them with live heat, air-quality and flood information.
+- **[Do new street trees cool Baltimore?](https://github.com/sahiljangra12/baltimore-tree-cooling)** follows up the atlas's tree-cover finding with a causal event study of the city's street-tree plantings.
