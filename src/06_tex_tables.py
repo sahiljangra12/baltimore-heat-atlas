@@ -20,6 +20,11 @@ def p(x):
     return r"$<$0.001" if x < 0.001 else f"{x:.3f}"
 
 
+def peq(x):
+    """p-value with its relation, for running text: p<0.001 or p=0.004."""
+    return r"$p<0.001$" if x < 0.001 else f"$p={x:.3f}$"
+
+
 mac.update({
     "NTracts": R["n_tracts"], "NScored": R["n_scored"], "PopTwenty": f"{R['pop2020_total']:,}", "PopACS": f"{R['pop_acs_total']:,}",
     "NScenes": R["landsat_scenes_total"], "NScenesUsed": R["landsat_scenes_used"],
@@ -69,18 +74,18 @@ mac.update({
     "VHn": R["veryhigh_n"], "VHpop": f"{R['veryhigh_pop']:,}", "VHdist": f(R["veryhigh_mean_dist_cool"], 2),
     "AllDist": f(R["all_mean_dist_cool"], 2), "NCool": R["n_cooling_centers"],
     "NZcta": R["zcta_n"],
-    "ValHVI": f(R["val_spearman"]["hvi"][0], 2), "ValHVIp": p(R["val_spearman"]["hvi"][1]),
+    "ValHVI": f(R["val_spearman"]["hvi"][0], 2), "ValHVIp": p(R["val_spearman"]["hvi"][1]), "ValHVIpEq": peq(R["val_spearman"]["hvi"][1]),
     "ValHVIlo": f(R["val_hvi_boot_ci"][0], 2), "ValHVIhi": f(R["val_hvi_boot_ci"][1], 2),
     "ValLST": f(R["val_spearman"]["lst_popw_c"][0], 2), "ValLSTp": p(R["val_spearman"]["lst_popw_c"][1]),
     "ValNight": f(R["val_spearman"]["modis_myd_night_c"][0], 2), "ValNightp": p(R["val_spearman"]["modis_myd_night_c"][1]),
     "ValExp": f(R["val_spearman"]["score_exposure"][0], 2), "ValExpp": p(R["val_spearman"]["score_exposure"][1]),
     "ValSens": f(R["val_spearman"]["score_sensitivity"][0], 2), "ValSensp": p(R["val_spearman"]["score_sensitivity"][1]),
     "ValCap": f(R["val_spearman"]["score_low_capacity"][0], 2), "ValCapp": p(R["val_spearman"]["score_low_capacity"][1]),
-    "ValSVI": f(R["val_spearman"]["svi_themes"][0], 2), "ValSVIp": p(R["val_spearman"]["svi_themes"][1]),
+    "ValSVI": f(R["val_spearman"]["svi_themes"][0], 2), "ValSVIp": p(R["val_spearman"]["svi_themes"][1]), "ValSVIpEq": peq(R["val_spearman"]["svi_themes"][1]),
     "ValHHI": f(R["val_spearman"]["OVERALL_RANK"][0], 2), "ValHHIp": p(R["val_spearman"]["OVERALL_RANK"][1]),
     "ExcessRtwo": f(R["excess_model_r2"], 2), "ExcessAdjExp": f(R["excess_exposure_only_adj_r2"], 2),
     "FullRtwo": f(R["excess_full_r2"], 2), "FullAdj": f(R["excess_full_adj_r2"], 2),
-    "NestedF": f(R["excess_nested_F"][0], 1), "NestedFp": p(R["excess_nested_F"][1]),
+    "NestedF": f(R["excess_nested_F"][0], 1), "NestedFp": p(R["excess_nested_F"][1]), "NestedFpEq": peq(R["excess_nested_F"][1]),
     "LooFull": f(R["loo_mae_full"], 1), "LooExp": f(R["loo_mae_exposure"], 1),
     "CapCoef": f(R["excess_full_coef"]["score_low_capacity"][0], 0), "CapCoefLo": f(R["excess_full_coef"]["score_low_capacity"][1][0], 0),
     "CapCoefHi": f(R["excess_full_coef"]["score_low_capacity"][1][1], 0),
