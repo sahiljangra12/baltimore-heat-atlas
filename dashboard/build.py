@@ -8,7 +8,7 @@ head, _, body = page.partition("</style>")
 site = ("<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\">\n"
         + head + "</style>\n</head>\n<body>\n" + body
-        + "\n<script defer src=\"https://sahiljangra12.github.io/ask/ask.js\" data-site=\"Baltimore Heat Atlas\"></script>"   # the site's search box; not part of the artifact body
+        + "\n<script defer src=\"https://sahiljangra12.github.io/ask/ask.js\" data-site=\"Baltimore Heat Atlas\" data-claude=\"on\"></script>"   # the site's search box; not part of the artifact body
         + "\n</body>\n</html>\n")
 (d.parent / "docs").mkdir(exist_ok=True)
 (d.parent / "docs" / "index.html").write_text(site)
